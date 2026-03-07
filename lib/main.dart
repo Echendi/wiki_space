@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'l10n/generated/app_localizations.dart';
 
 import 'core/di/service_locator.dart';
+import 'features/auth/data/auth_service.dart';
+import 'features/auth/presentation/auth_gate.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -32,7 +37,49 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
+  static const _localeLanguageCodeKey = 'preferred_locale_language_code';
   Locale _currentLocale = const Locale('es');
+
+  Future<SharedPreferences?> _getSharedPreferencesSafe() async {
+    try {
+      return await SharedPreferences.getInstance();
+    } on MissingPluginException {
+      return null;
+    } on PlatformException {
+      return null;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedLocale();
+  }
+
+  Future<void> _loadSavedLocale() async {
+    final prefs = await _getSharedPreferencesSafe();
+    if (prefs == null) {
+      return;
+    }
+
+    final savedLanguageCode = prefs.getString(_localeLanguageCodeKey);
+    final supportedSavedLanguageCode =
+        (savedLanguageCode == 'es' || savedLanguageCode == 'en')
+            ? savedLanguageCode
+            : null;
+
+    if (supportedSavedLanguageCode == null) {
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _currentLocale = Locale(supportedSavedLanguageCode);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,53 +89,15 @@ class _MainAppState extends State<MainApp> {
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: Builder(
-        builder: (context) {
-          final l10n = AppLocalizations.of(context);
-
-          return Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    l10n.helloWorld,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('${l10n.languageLabel}: '),
-                      DropdownButton<Locale>(
-                        value: _currentLocale,
-                        onChanged: (newLocale) {
-                          if (newLocale == null) {
-                            return;
-                          }
-                          setState(() {
-                            _currentLocale = newLocale;
-                          });
-                        },
-                        items: [
-                          DropdownMenuItem(
-                            value: const Locale('es'),
-                            child: Text(l10n.spanishOption),
-                          ),
-                          DropdownMenuItem(
-                            value: const Locale('en'),
-                            child: Text(l10n.englishOption),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF55D6BE),
+          brightness: Brightness.dark,
+        ),
+        textTheme: GoogleFonts.spaceGroteskTextTheme(),
       ),
+      home: AuthGate(authService: serviceLocator<AuthService>()),
     );
   }
 }
