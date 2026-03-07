@@ -177,28 +177,67 @@ class _AuthRefreshListenable extends ChangeNotifier {
   }
 }
 
-class _MainShellScaffold extends StatelessWidget {
+class _MainShellScaffold extends StatefulWidget {
   const _MainShellScaffold({required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
+  State<_MainShellScaffold> createState() => _MainShellScaffoldState();
+}
+
+class _MainShellScaffoldState extends State<_MainShellScaffold> {
+  static const Duration _exitGap = Duration(seconds: 2);
+  DateTime? _lastBackPressedAt;
+
+  Future<bool> _onWillPop(BuildContext context) async {
+    final now = DateTime.now();
+    final canExit = _lastBackPressedAt != null &&
+        now.difference(_lastBackPressedAt!) <= _exitGap;
+
+    if (canExit) {
+      return true;
+    }
+
+    _lastBackPressedAt = now;
+
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final message = languageCode == 'es'
+        ? 'Presiona atras nuevamente para salir'
+        : 'Press back again to exit';
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: _exitGap,
+        ),
+      );
+
+    return false;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
-    return Scaffold(
-      extendBody: true,
-      body: navigationShell,
-      bottomNavigationBar: SpaceBottomNavBar(
-        currentIndex: navigationShell.currentIndex,
-        onTap: (index) {
-          navigationShell.goBranch(
-            index,
-            initialLocation: index == navigationShell.currentIndex,
-          );
-        },
-        homeLabel: l10n.navHome,
-        profileLabel: l10n.navProfile,
+    return WillPopScope(
+      onWillPop: () => _onWillPop(context),
+      child: Scaffold(
+        extendBody: true,
+        body: widget.navigationShell,
+        bottomNavigationBar: SpaceBottomNavBar(
+          currentIndex: widget.navigationShell.currentIndex,
+          onTap: (index) {
+            widget.navigationShell.goBranch(
+              index,
+              initialLocation: index == widget.navigationShell.currentIndex,
+            );
+          },
+          homeLabel: l10n.navHome,
+          profileLabel: l10n.navProfile,
+        ),
       ),
     );
   }

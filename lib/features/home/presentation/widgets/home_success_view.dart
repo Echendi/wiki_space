@@ -1,0 +1,189 @@
+import 'package:flutter/material.dart';
+
+import '../../../../core/theme/app_palette.dart';
+import '../../../../l10n/generated/app_localizations.dart';
+import '../cubit/home_state.dart';
+import 'home_articles_sliver_grid.dart';
+import 'home_carousel_content.dart';
+import 'home_feed_header_sliver.dart';
+import 'home_header.dart';
+import 'home_load_more_sliver.dart';
+import 'home_search_bar.dart';
+
+class HomeSuccessView extends StatelessWidget {
+  const HomeSuccessView({
+    super.key,
+    required this.state,
+    required this.isDark,
+    required this.l10n,
+    required this.pageController,
+    required this.searchController,
+    required this.onSearchChanged,
+    required this.onSearchSubmitted,
+    required this.onRetryLoad,
+    required this.onLoadMore,
+    required this.onOpenDetail,
+  });
+
+  final HomeState state;
+  final bool isDark;
+  final AppLocalizations l10n;
+  final PageController pageController;
+  final TextEditingController searchController;
+  final ValueChanged<String> onSearchChanged;
+  final VoidCallback onSearchSubmitted;
+  final VoidCallback onRetryLoad;
+  final VoidCallback onLoadMore;
+  final void Function(String articleId) onOpenDetail;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final carouselHeight =
+            (constraints.maxHeight * 0.56).clamp(250.0, 380.0);
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: 74,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child:
+                        IgnorePointer(child: _AmbientBackdrop(isDark: isDark)),
+                  ),
+                  Align(
+                    alignment: Alignment.bottomLeft,
+                    child: HomeHeader(isDark: isDark),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            HomeSearchBar(
+              controller: searchController,
+              onChanged: onSearchChanged,
+              onSubmitted: (_) => onSearchSubmitted(),
+              onSearchTap: onSearchSubmitted,
+              isDark: isDark,
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (notification) {
+                  final isVertical = notification.metrics.axis == Axis.vertical;
+                  final isUserScrollEnd =
+                      notification is ScrollEndNotification &&
+                          notification.dragDetails != null;
+                  final hasScrollableExtent =
+                      notification.metrics.maxScrollExtent > 0;
+                  final nearBottom = notification.metrics.extentAfter < 320;
+
+                  if (isVertical &&
+                      isUserScrollEnd &&
+                      hasScrollableExtent &&
+                      nearBottom) {
+                    onLoadMore();
+                  }
+                  return false;
+                },
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: SizedBox(
+                          height: carouselHeight,
+                          child: HomeCarouselContent(
+                            state: state,
+                            pageController: pageController,
+                            isDark: isDark,
+                            onRetry: onRetryLoad,
+                            onOpenDetail: onOpenDetail,
+                          ),
+                        ),
+                      ),
+                    ),
+                    HomeFeedHeaderSliver(
+                      isDark: isDark,
+                      title: l10n.homeSpaceFeedTitle,
+                    ),
+                    HomeArticlesSliverGrid(
+                      items: state.articles,
+                      isDark: isDark,
+                      onOpenDetail: onOpenDetail,
+                    ),
+                    HomeLoadMoreSliver(
+                      isLoadingMore: state.isLoadingMore,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _AmbientBackdrop extends StatelessWidget {
+  const _AmbientBackdrop({required this.isDark});
+
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = isDark ? AppPalette.secondary : AppPalette.primary;
+    final accentAlt = isDark ? AppPalette.primary : AppPalette.accent;
+
+    return Stack(
+      children: [
+        Positioned(
+          top: -22,
+          left: -28,
+          child: _GlowOrb(
+            size: 140,
+            color: accent.withValues(alpha: isDark ? 0.12 : 0.1),
+          ),
+        ),
+        Positioned(
+          top: 64,
+          right: -18,
+          child: _GlowOrb(
+            size: 112,
+            color: accentAlt.withValues(alpha: isDark ? 0.1 : 0.08),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _GlowOrb extends StatelessWidget {
+  const _GlowOrb({required this.size, required this.color});
+
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            color,
+            color.withValues(alpha: 0.04),
+            Colors.transparent,
+          ],
+        ),
+      ),
+    );
+  }
+}

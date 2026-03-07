@@ -6,9 +6,14 @@ import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
 class SpaceLogo extends StatelessWidget {
-  const SpaceLogo({super.key, this.size = 112});
+  const SpaceLogo({
+    super.key,
+    this.size = 112,
+    this.showWordmark = true,
+  });
 
   final double size;
+  final bool showWordmark;
 
   @override
   Widget build(BuildContext context) {
@@ -20,11 +25,13 @@ class SpaceLogo extends StatelessWidget {
           size: Size.square(size),
           painter: _PlanetLogoPainter(isDark: isDark),
         ),
-        const SizedBox(height: 10),
-        Text(
-          'WIKI SPACE',
-          style: AppTextStyles.logo(isDark),
-        ),
+        if (showWordmark) ...[
+          const SizedBox(height: 10),
+          Text(
+            'WIKI SPACE',
+            style: AppTextStyles.logo(isDark),
+          ),
+        ],
       ],
     );
   }

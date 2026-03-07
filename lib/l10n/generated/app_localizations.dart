@@ -491,7 +491,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeSpaceFeedTitle.
   ///
   /// In es, this message translates to:
-  /// **'Explora el Espacio'**
+  /// **'Novedades del Espacio'**
   String get homeSpaceFeedTitle;
 
   /// No description provided for @homeSpaceFeedSubtitle.
@@ -499,6 +499,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Descubre artículos y recursos visuales obtenidos con MediaWiki Action API.'**
   String get homeSpaceFeedSubtitle;
+
+  /// No description provided for @homeSearchHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar en artículos del espacio'**
+  String get homeSearchHint;
+
+  /// No description provided for @homeSearchAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar'**
+  String get homeSearchAction;
 
   /// No description provided for @homeLoading.
   ///

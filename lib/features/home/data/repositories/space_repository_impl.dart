@@ -8,7 +8,17 @@ class SpaceRepositoryImpl implements SpaceRepository {
   final SpaceRemoteDataSource _remoteDataSource;
 
   @override
-  Future<List<SpaceArticle>> getSpaceArticles(String languageCode) {
-    return _remoteDataSource.fetchSpaceArticles(languageCode);
+  Future<List<SpaceArticle>> getSpaceArticles(
+    String languageCode, {
+    String query = '',
+    int limit = 24,
+    int offset = 0,
+  }) {
+    return _remoteDataSource.fetchSpaceArticles(
+      languageCode,
+      query: query,
+      limit: limit,
+      offset: offset,
+    );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../features/auth/presentation/widgets/space_logo.dart';
 import '../../l10n/generated/app_localizations.dart';
 
 class GlobalTopBar extends StatelessWidget implements PreferredSizeWidget {
@@ -26,6 +27,7 @@ class GlobalTopBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final effectiveLocale = Localizations.localeOf(context);
     final currentThemeMode = Theme.of(context).brightness == Brightness.dark
         ? ThemeMode.dark
         : ThemeMode.light;
@@ -38,7 +40,14 @@ class GlobalTopBar extends StatelessWidget implements PreferredSizeWidget {
               icon: const Icon(Icons.arrow_back_rounded),
             )
           : null,
-      title: Text(l10n.appTitle),
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SpaceLogo(size: 20, showWordmark: false),
+          const SizedBox(width: 8),
+          Flexible(child: Text(l10n.appTitle)),
+        ],
+      ),
       actions: [
         IconButton(
           tooltip: _themeTooltip(l10n, currentThemeMode),
@@ -56,7 +65,7 @@ class GlobalTopBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         PopupMenuButton<Locale>(
           tooltip: l10n.languageLabel,
-          initialValue: locale,
+          initialValue: effectiveLocale,
           onSelected: onLocaleChanged,
           itemBuilder: (context) {
             return [
@@ -76,7 +85,7 @@ class GlobalTopBar extends StatelessWidget implements PreferredSizeWidget {
               children: [
                 const Icon(Icons.language_rounded),
                 const SizedBox(width: 6),
-                Text(locale.languageCode.toUpperCase()),
+                Text(effectiveLocale.languageCode.toUpperCase()),
               ],
             ),
           ),

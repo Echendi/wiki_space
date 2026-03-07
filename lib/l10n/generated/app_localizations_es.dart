@@ -225,11 +225,17 @@ class AppLocalizationsEs extends AppLocalizations {
       'Flujo conectado a FirebaseAuth para autenticación real.';
 
   @override
-  String get homeSpaceFeedTitle => 'Explora el Espacio';
+  String get homeSpaceFeedTitle => 'Novedades del Espacio';
 
   @override
   String get homeSpaceFeedSubtitle =>
       'Descubre artículos y recursos visuales obtenidos con MediaWiki Action API.';
+
+  @override
+  String get homeSearchHint => 'Buscar en artículos del espacio';
+
+  @override
+  String get homeSearchAction => 'Buscar';
 
   @override
   String get homeLoading => 'Cargando recursos del espacio...';

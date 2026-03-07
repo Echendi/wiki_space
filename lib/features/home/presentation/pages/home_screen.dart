@@ -33,25 +33,33 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const int _minSearchChars = 3;
+  static void _ignoreSearchChanged(String _) {}
+
   late final PageController _pageController =
       PageController(viewportFraction: 0.68);
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void dispose() {
     _pageController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
-  Future<void> _signOut(BuildContext context) async {
-    final l10n = AppLocalizations.of(context);
-    await widget.authService.signOut();
-    if (!context.mounted) {
+  void _submitSearch(HomeCubit cubit, String languageCode) {
+    final query = _searchController.text.trim();
+    if (!_shouldSearch(query)) {
       return;
     }
 
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(l10n.signOutSuccess)));
+    if (!cubit.isClosed) {
+      cubit.search(languageCode, query);
+    }
+  }
+
+  bool _shouldSearch(String query) {
+    return query.isEmpty || query.length >= _minSearchChars;
   }
 
   @override
@@ -61,6 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final languageCode = Localizations.localeOf(context).languageCode;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: GlobalTopBar(
         locale: widget.locale,
         themeMode: widget.themeMode,
@@ -79,58 +88,88 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
             child: BlocProvider(
               key: ValueKey(languageCode),
               create: (_) => serviceLocator<HomeCubit>()..load(languageCode),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  HomeHeader(
-                    isDark: isDark,
-                    onSignOut: () => _signOut(context),
-                  ),
-                  const SizedBox(height: 14),
-                  Expanded(
-                    child: BlocBuilder<HomeCubit, HomeState>(
-                      builder: (context, state) {
-                        switch (state.status) {
-                          case HomeStatus.loading:
-                          case HomeStatus.initial:
-                            return HomeLoadingView(
+              child: BlocBuilder<HomeCubit, HomeState>(
+                builder: (context, state) {
+                  final homeCubit = context.read<HomeCubit>();
+
+                  switch (state.status) {
+                    case HomeStatus.loading:
+                    case HomeStatus.initial:
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          HomeHeader(isDark: isDark),
+                          const SizedBox(height: 8),
+                          HomeSearchBar(
+                            controller: _searchController,
+                            onChanged: _ignoreSearchChanged,
+                            onSubmitted: (_) =>
+                                _submitSearch(homeCubit, languageCode),
+                            onSearchTap: () =>
+                                _submitSearch(homeCubit, languageCode),
+                            isDark: isDark,
+                          ),
+                          const SizedBox(height: 12),
+                          Expanded(
+                            child: HomeLoadingView(
                               isDark: isDark,
                               label: l10n.homeLoading,
-                            );
-                          case HomeStatus.failure:
-                            final isEmpty =
-                                state.errorMessage == 'empty-results';
-                            return HomeErrorView(
+                            ),
+                          ),
+                        ],
+                      );
+                    case HomeStatus.failure:
+                      final isEmpty = state.errorMessage == 'empty-results';
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          HomeHeader(isDark: isDark),
+                          const SizedBox(height: 8),
+                          HomeSearchBar(
+                            controller: _searchController,
+                            onChanged: _ignoreSearchChanged,
+                            onSubmitted: (_) =>
+                                _submitSearch(homeCubit, languageCode),
+                            onSearchTap: () =>
+                                _submitSearch(homeCubit, languageCode),
+                            isDark: isDark,
+                          ),
+                          const SizedBox(height: 12),
+                          Expanded(
+                            child: HomeErrorView(
                               isDark: isDark,
                               message: isEmpty
                                   ? l10n.homeEmptyResults
                                   : l10n.homeLoadError,
                               retryLabel: l10n.homeRetry,
-                              onRetry: () =>
-                                  context.read<HomeCubit>().load(languageCode),
-                            );
-                          case HomeStatus.success:
-                            return HomeCarouselContent(
-                              state: state,
-                              pageController: _pageController,
-                              isDark: isDark,
-                              onRetry: () =>
-                                  context.read<HomeCubit>().load(languageCode),
-                              onOpenDetail: (articleId) {
-                                final encoded =
-                                    Uri.encodeQueryComponent(articleId);
-                                context.push('${AppRoutes.detail}?id=$encoded');
-                              },
-                            );
-                        }
-                      },
-                    ),
-                  ),
-                ],
+                              onRetry: () => homeCubit.load(languageCode),
+                            ),
+                          ),
+                        ],
+                      );
+                    case HomeStatus.success:
+                      return HomeSuccessView(
+                        state: state,
+                        isDark: isDark,
+                        l10n: l10n,
+                        pageController: _pageController,
+                        searchController: _searchController,
+                        onSearchChanged: _ignoreSearchChanged,
+                        onSearchSubmitted: () =>
+                            _submitSearch(homeCubit, languageCode),
+                        onRetryLoad: () => homeCubit.load(languageCode),
+                        onLoadMore: () => homeCubit.loadMore(languageCode),
+                        onOpenDetail: (articleId) {
+                          final encoded = Uri.encodeQueryComponent(articleId);
+                          context.push('${AppRoutes.detail}?id=$encoded');
+                        },
+                      );
+                  }
+                },
               ),
             ),
           ),

@@ -37,6 +37,25 @@ class ProfileScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton.tonalIcon(
+                onPressed: () async {
+                  await authService.signOut();
+                  if (!context.mounted) {
+                    return;
+                  }
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      SnackBar(content: Text(l10n.signOutSuccess)),
+                    );
+                },
+                icon: const Icon(Icons.logout_rounded),
+                label: Text(l10n.signOutButton),
+              ),
+            ),
+            const SizedBox(height: 10),
             Text(
               l10n.profileTitle,
               style: Theme.of(context).textTheme.headlineSmall,

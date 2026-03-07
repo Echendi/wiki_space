@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../auth/presentation/widgets/space_logo.dart';
 import '../cubit/home_cubit.dart';
 import '../cubit/home_state.dart';
 import 'home_feedback_views.dart';
@@ -28,6 +29,7 @@ class HomeCarouselContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final carouselItems = state.carouselArticles;
     final current = state.currentArticle;
 
     if (current == null) {
@@ -43,31 +45,61 @@ class HomeCarouselContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: _MainPreviewCard(
-            title: current.title,
-            summary: current.description,
-            imageUrl: current.imageUrl,
-            isDark: isDark,
-            onTap: () => onOpenDetail(current.title),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 340),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, animation) {
+              final slide = Tween<Offset>(
+                begin: const Offset(0.06, 0),
+                end: Offset.zero,
+              ).animate(animation);
+              return FadeTransition(
+                opacity: animation,
+                child: SlideTransition(position: slide, child: child),
+              );
+            },
+            child: _MainPreviewCard(
+              key: ValueKey(current.title),
+              title: current.title,
+              summary: current.description,
+              imageUrl: current.imageUrl,
+              isDark: isDark,
+              onTap: () => onOpenDetail(current.title),
+            ),
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 4),
         Center(
-          child: Text(
-            l10n.homeSlideCounter(
-                state.currentIndex + 1, state.articles.length),
-            style: AppTextStyles.overline(isDark),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(999),
+              color:
+                  (isDark ? AppPalette.surfaceDarkAlt : AppPalette.surfaceLight)
+                      .withValues(alpha: isDark ? 0.7 : 0.86),
+              border: Border.all(
+                color: AppPalette.accent.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Text(
+              l10n.homeSlideCounter(
+                  state.currentIndex + 1, carouselItems.length),
+              style: AppTextStyles.overline(isDark).copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 2),
         SizedBox(
-          height: 220,
+          height: 132,
           child: PageView.builder(
             controller: pageController,
-            itemCount: state.articles.length,
+            itemCount: carouselItems.length,
             onPageChanged: context.read<HomeCubit>().onPageChanged,
             itemBuilder: (context, index) {
-              final item = state.articles[index];
+              final item = carouselItems[index];
               return AnimatedBuilder(
                 animation: pageController,
                 builder: (context, child) {
@@ -99,6 +131,7 @@ class HomeCarouselContent extends StatelessWidget {
 
 class _MainPreviewCard extends StatelessWidget {
   const _MainPreviewCard({
+    super.key,
     required this.title,
     required this.summary,
     required this.imageUrl,
@@ -200,7 +233,7 @@ class _CarouselCard extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOut,
-          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
@@ -259,6 +292,9 @@ class _ArticleImage extends StatelessWidget {
 
   final String imageUrl;
   final String fallbackLabel;
+  static const Map<String, String> _imageHeaders = <String, String>{
+    'User-Agent': 'WikiSpaceApp/1.0 (Flutter)',
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -268,6 +304,7 @@ class _ArticleImage extends StatelessWidget {
 
     return CachedNetworkImage(
       imageUrl: imageUrl,
+      httpHeaders: _imageHeaders,
       fit: BoxFit.cover,
       placeholder: (context, _) => const Center(
         child: CircularProgressIndicator(strokeWidth: 2.2),
@@ -292,7 +329,7 @@ class _ImageFallback extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.image_not_supported_rounded, size: 34),
+          const SpaceLogo(size: 54, showWordmark: false),
           const SizedBox(height: 8),
           Text(label, style: AppTextStyles.caption(isDark)),
         ],

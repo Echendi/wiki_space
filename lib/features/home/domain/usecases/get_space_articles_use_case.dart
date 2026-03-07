@@ -6,7 +6,17 @@ class GetSpaceArticlesUseCase {
 
   final SpaceRepository _repository;
 
-  Future<List<SpaceArticle>> call(String languageCode) {
-    return _repository.getSpaceArticles(languageCode);
+  Future<List<SpaceArticle>> call(
+    String languageCode, {
+    String query = '',
+    int limit = 24,
+    int offset = 0,
+  }) {
+    return _repository.getSpaceArticles(
+      languageCode,
+      query: query,
+      limit: limit,
+      offset: offset,
+    );
   }
 }

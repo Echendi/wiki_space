@@ -3,67 +3,83 @@ import 'package:dio/dio.dart';
 import '../models/space_article_model.dart';
 
 abstract class SpaceRemoteDataSource {
-  Future<List<SpaceArticleModel>> fetchSpaceArticles(String languageCode);
+  Future<List<SpaceArticleModel>> fetchSpaceArticles(
+    String languageCode, {
+    String query,
+    int limit,
+    int offset,
+  });
 }
 
 class SpaceRemoteDataSourceImpl implements SpaceRemoteDataSource {
   SpaceRemoteDataSourceImpl(this._dio);
 
   final Dio _dio;
+  static const Duration _requestTimeout = Duration(seconds: 12);
 
   @override
   Future<List<SpaceArticleModel>> fetchSpaceArticles(
-      String languageCode) async {
+    String languageCode, {
+    String query = '',
+    int limit = 24,
+    int offset = 0,
+  }) async {
     final normalizedLanguage = _normalizeLanguage(languageCode);
     final endpoint = 'https://$normalizedLanguage.wikipedia.org/w/api.php';
 
-    final categoryTitles = _categoryTitlesFor(normalizedLanguage);
-    final itemsById = <int, SpaceArticleModel>{};
+    final categoryLabel = _categoryLabelFor(normalizedLanguage);
+    final normalizedQuery = query.trim();
+    final searchClause = normalizedQuery.isEmpty
+        ? 'incategory:"$categoryLabel"'
+        : '$normalizedQuery incategory:"$categoryLabel"';
 
-    for (final categoryTitle in categoryTitles) {
+    try {
       final response = await _dio.get<Map<String, dynamic>>(
         endpoint,
         queryParameters: {
           'action': 'query',
           'format': 'json',
           'formatversion': '2',
-          'generator': 'categorymembers',
-          'gcmtitle': categoryTitle,
-          'gcmnamespace': '0',
-          'gcmlimit': '40',
+          'generator': 'search',
+          'gsrsearch': searchClause,
+          'gsrnamespace': '0',
+          'gsrlimit': '$limit',
+          'gsroffset': '$offset',
           'prop': 'pageimages|extracts|info',
           'inprop': 'url',
           'piprop': 'thumbnail',
-          'pithumbsize': '900',
+          'pithumbsize': '560',
           'exintro': '1',
           'explaintext': '1',
           'exsentences': '3',
           'origin': '*',
         },
+        options: Options(
+          sendTimeout: _requestTimeout,
+          receiveTimeout: _requestTimeout,
+        ),
       );
 
-      final query = response.data?['query'] as Map<String, dynamic>?;
-      final pages = query?['pages'] as List<dynamic>?;
-
+      final queryMap = response.data?['query'] as Map<String, dynamic>?;
+      final pages = queryMap?['pages'] as List<dynamic>?;
       if (pages == null || pages.isEmpty) {
-        continue;
+        return const <SpaceArticleModel>[];
       }
 
-      final parsedItems = pages
+      return pages
           .whereType<Map<String, dynamic>>()
           .map(SpaceArticleModel.fromJson)
-          .where((item) => item.title.isNotEmpty && item.imageUrl.isNotEmpty);
-
-      for (final item in parsedItems) {
-        itemsById[item.id] = item;
+          .where((item) => item.title.isNotEmpty)
+          .toList(growable: false);
+    } on DioException catch (error) {
+      final isTimeout = error.type == DioExceptionType.connectionTimeout ||
+          error.type == DioExceptionType.sendTimeout ||
+          error.type == DioExceptionType.receiveTimeout;
+      if (isTimeout) {
+        throw Exception('request-timeout');
       }
-
-      if (itemsById.length >= 24) {
-        break;
-      }
+      rethrow;
     }
-
-    return itemsById.values.take(24).toList(growable: false);
   }
 
   String _normalizeLanguage(String languageCode) {
@@ -74,20 +90,12 @@ class SpaceRemoteDataSourceImpl implements SpaceRemoteDataSource {
     return 'en';
   }
 
-  List<String> _categoryTitlesFor(String languageCode) {
+  String _categoryLabelFor(String languageCode) {
     switch (languageCode) {
       case 'es':
-        return const <String>[
-          'Categoría:Espacio exterior',
-          'Categoría:Exploración espacial',
-          'Categoría:Astronomía',
-        ];
+        return 'Espacio exterior';
       default:
-        return const <String>[
-          'Category:Space',
-          'Category:Outer space',
-          'Category:Spaceflight',
-        ];
+        return 'Space';
     }
   }
 }
