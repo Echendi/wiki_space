@@ -116,6 +116,12 @@ abstract class AppLocalizations {
   /// **'Idioma'**
   String get languageLabel;
 
+  /// No description provided for @themeLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Tema'**
+  String get themeLabel;
+
   /// No description provided for @spanishOption.
   ///
   /// In es, this message translates to:
@@ -127,6 +133,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Inglés'**
   String get englishOption;
+
+  /// No description provided for @themeSystemLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Sistema'**
+  String get themeSystemLabel;
 
   /// No description provided for @themeLightLabel.
   ///
@@ -415,6 +427,54 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'ID de usuario'**
   String get profileUidLabel;
+
+  /// No description provided for @profileDisplayNameLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre'**
+  String get profileDisplayNameLabel;
+
+  /// No description provided for @profilePhoneLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Teléfono'**
+  String get profilePhoneLabel;
+
+  /// No description provided for @profileProvidersLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Proveedores'**
+  String get profileProvidersLabel;
+
+  /// No description provided for @profileEmailVerifiedLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Correo verificado'**
+  String get profileEmailVerifiedLabel;
+
+  /// No description provided for @profileVersionLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Versión de la aplicación'**
+  String get profileVersionLabel;
+
+  /// No description provided for @profileNotAvailable.
+  ///
+  /// In es, this message translates to:
+  /// **'No disponible'**
+  String get profileNotAvailable;
+
+  /// No description provided for @profileYesValue.
+  ///
+  /// In es, this message translates to:
+  /// **'Sí'**
+  String get profileYesValue;
+
+  /// No description provided for @profileNoValue.
+  ///
+  /// In es, this message translates to:
+  /// **'No'**
+  String get profileNoValue;
 
   /// No description provided for @goToDetailButton.
   ///

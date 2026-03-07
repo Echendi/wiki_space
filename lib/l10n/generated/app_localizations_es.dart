@@ -18,10 +18,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get languageLabel => 'Idioma';
 
   @override
+  String get themeLabel => 'Tema';
+
+  @override
   String get spanishOption => 'Español';
 
   @override
   String get englishOption => 'Inglés';
+
+  @override
+  String get themeSystemLabel => 'Sistema';
 
   @override
   String get themeLightLabel => 'Tema claro';
@@ -181,6 +187,30 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get profileUidLabel => 'ID de usuario';
+
+  @override
+  String get profileDisplayNameLabel => 'Nombre';
+
+  @override
+  String get profilePhoneLabel => 'Teléfono';
+
+  @override
+  String get profileProvidersLabel => 'Proveedores';
+
+  @override
+  String get profileEmailVerifiedLabel => 'Correo verificado';
+
+  @override
+  String get profileVersionLabel => 'Versión de la aplicación';
+
+  @override
+  String get profileNotAvailable => 'No disponible';
+
+  @override
+  String get profileYesValue => 'Sí';
+
+  @override
+  String get profileNoValue => 'No';
 
   @override
   String get goToDetailButton => 'Ir a detalle';

@@ -41,7 +41,7 @@ class _MainAppState extends State<MainApp> {
   static const _themeModeKey = 'preferred_theme_mode';
 
   Locale _currentLocale = const Locale('es');
-  ThemeMode _themeMode = ThemeMode.dark;
+  ThemeMode _themeMode = ThemeMode.system;
   late final AppRouter _appRouter;
 
   Future<SharedPreferences?> _getSharedPreferencesSafe() async {
@@ -87,9 +87,10 @@ class _MainAppState extends State<MainApp> {
             ? savedLanguageCode
             : null;
     final resolvedThemeMode = switch (savedThemeMode) {
+      'system' => ThemeMode.system,
       'light' => ThemeMode.light,
       'dark' => ThemeMode.dark,
-      _ => ThemeMode.dark,
+      _ => ThemeMode.system,
     };
 
     if (!mounted) {
@@ -127,9 +128,15 @@ class _MainAppState extends State<MainApp> {
     });
 
     final prefs = await _getSharedPreferencesSafe();
+    final encodedThemeMode = switch (themeMode) {
+      ThemeMode.system => 'system',
+      ThemeMode.light => 'light',
+      ThemeMode.dark => 'dark',
+    };
+
     await prefs?.setString(
       _themeModeKey,
-      themeMode == ThemeMode.light ? 'light' : 'dark',
+      encodedThemeMode,
     );
   }
 

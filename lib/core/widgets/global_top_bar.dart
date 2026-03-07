@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../features/auth/presentation/widgets/space_logo.dart';
 import '../../l10n/generated/app_localizations.dart';
 
-class GlobalTopBar extends StatelessWidget implements PreferredSizeWidget {
+class GlobalTopBar extends StatefulWidget implements PreferredSizeWidget {
   const GlobalTopBar({
     super.key,
     required this.locale,
@@ -25,18 +25,50 @@ class GlobalTopBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
+  State<GlobalTopBar> createState() => _GlobalTopBarState();
+}
+
+class _GlobalTopBarState extends State<GlobalTopBar> {
+  late ThemeMode _currentThemeMode;
+  late String _currentLanguageCode;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentThemeMode = widget.themeMode;
+    _currentLanguageCode = widget.locale.languageCode;
+  }
+
+  @override
+  void didUpdateWidget(covariant GlobalTopBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.themeMode != widget.themeMode &&
+        widget.themeMode != _currentThemeMode) {
+      _currentThemeMode = widget.themeMode;
+    }
+
+    if (oldWidget.locale.languageCode != widget.locale.languageCode &&
+        widget.locale.languageCode != _currentLanguageCode) {
+      _currentLanguageCode = widget.locale.languageCode;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final appBarForeground = Theme.of(context).appBarTheme.foregroundColor ??
+        Theme.of(context).colorScheme.onSurface;
     final effectiveLocale = Localizations.localeOf(context);
-    final currentThemeMode = Theme.of(context).brightness == Brightness.dark
-        ? ThemeMode.dark
-        : ThemeMode.light;
+    if (_currentLanguageCode != effectiveLocale.languageCode) {
+      _currentLanguageCode = effectiveLocale.languageCode;
+    }
 
     return AppBar(
-      leading: showBackButton
+      leading: widget.showBackButton
           ? IconButton(
-              onPressed:
-                  onBackPressed ?? () => Navigator.of(context).maybePop(),
+              onPressed: widget.onBackPressed ??
+                  () => Navigator.of(context).maybePop(),
               icon: const Icon(Icons.arrow_back_rounded),
             )
           : null,
@@ -50,53 +82,85 @@ class GlobalTopBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         IconButton(
-          tooltip: _themeTooltip(l10n, currentThemeMode),
+          tooltip: _themeTooltip(l10n, _currentThemeMode),
           onPressed: () {
-            final nextMode = currentThemeMode == ThemeMode.dark
-                ? ThemeMode.light
-                : ThemeMode.dark;
-            onThemeModeChanged(nextMode);
+            final nextMode = _nextThemeMode(_currentThemeMode);
+            setState(() {
+              _currentThemeMode = nextMode;
+            });
+            widget.onThemeModeChanged(nextMode);
           },
-          icon: Icon(
-            currentThemeMode == ThemeMode.dark
-                ? Icons.dark_mode_rounded
-                : Icons.light_mode_rounded,
-          ),
+          icon: Icon(_themeIcon(_currentThemeMode)),
         ),
-        PopupMenuButton<Locale>(
-          tooltip: l10n.languageLabel,
-          initialValue: effectiveLocale,
-          onSelected: onLocaleChanged,
-          itemBuilder: (context) {
-            return [
-              PopupMenuItem(
-                value: const Locale('es'),
-                child: Text(l10n.spanishOption),
-              ),
-              PopupMenuItem(
-                value: const Locale('en'),
-                child: Text(l10n.englishOption),
-              ),
-            ];
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                const Icon(Icons.language_rounded),
-                const SizedBox(width: 6),
-                Text(effectiveLocale.languageCode.toUpperCase()),
-              ],
+        Tooltip(
+          message: _languageTooltip(l10n, _currentLanguageCode),
+          child: TextButton.icon(
+            onPressed: () {
+              final nextLocale = _nextLocale(_currentLanguageCode);
+              setState(() {
+                _currentLanguageCode = nextLocale.languageCode;
+              });
+              widget.onLocaleChanged(nextLocale);
+            },
+            icon: Text(
+              _languageFlag(_currentLanguageCode),
+              style: const TextStyle(fontSize: 16),
+            ),
+            label: Text(
+              _currentLanguageCode.toUpperCase(),
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: appBarForeground,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            style: TextButton.styleFrom(
+              foregroundColor: appBarForeground,
+              minimumSize: const Size(0, 40),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ),
         ),
+        const SizedBox(width: 6),
       ],
     );
   }
 
+  ThemeMode _nextThemeMode(ThemeMode currentThemeMode) {
+    return switch (currentThemeMode) {
+      ThemeMode.system => ThemeMode.light,
+      ThemeMode.light => ThemeMode.dark,
+      ThemeMode.dark => ThemeMode.system,
+    };
+  }
+
+  IconData _themeIcon(ThemeMode currentThemeMode) {
+    return switch (currentThemeMode) {
+      ThemeMode.system => Icons.brightness_auto_rounded,
+      ThemeMode.light => Icons.light_mode_rounded,
+      ThemeMode.dark => Icons.dark_mode_rounded,
+    };
+  }
+
   String _themeTooltip(AppLocalizations l10n, ThemeMode currentThemeMode) {
-    return currentThemeMode == ThemeMode.dark
-        ? l10n.themeDarkLabel
-        : l10n.themeLightLabel;
+    return switch (currentThemeMode) {
+      ThemeMode.system => l10n.themeSystemLabel,
+      ThemeMode.light => l10n.themeLightLabel,
+      ThemeMode.dark => l10n.themeDarkLabel,
+    };
+  }
+
+  Locale _nextLocale(String currentLanguageCode) {
+    return currentLanguageCode == 'es'
+        ? const Locale('en')
+        : const Locale('es');
+  }
+
+  String _languageFlag(String languageCode) {
+    return languageCode == 'es' ? '🇨🇴' : '🇺🇸';
+  }
+
+  String _languageTooltip(AppLocalizations l10n, String languageCode) {
+    return languageCode == 'es' ? l10n.spanishOption : l10n.englishOption;
   }
 }
