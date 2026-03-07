@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'l10n/generated/app_localizations.dart';
 
 import 'core/di/service_locator.dart';
+import 'core/theme/app_theme.dart';
 import 'features/auth/data/auth_service.dart';
 import 'features/auth/presentation/auth_gate.dart';
 import 'firebase_options.dart';
@@ -38,7 +38,10 @@ class MainApp extends StatefulWidget {
 
 class _MainAppState extends State<MainApp> {
   static const _localeLanguageCodeKey = 'preferred_locale_language_code';
+  static const _themeModeKey = 'preferred_theme_mode';
+
   Locale _currentLocale = const Locale('es');
+  ThemeMode _themeMode = ThemeMode.dark;
 
   Future<SharedPreferences?> _getSharedPreferencesSafe() async {
     try {
@@ -53,32 +56,67 @@ class _MainAppState extends State<MainApp> {
   @override
   void initState() {
     super.initState();
-    _loadSavedLocale();
+    _loadSavedPreferences();
   }
 
-  Future<void> _loadSavedLocale() async {
+  Future<void> _loadSavedPreferences() async {
     final prefs = await _getSharedPreferencesSafe();
     if (prefs == null) {
       return;
     }
 
     final savedLanguageCode = prefs.getString(_localeLanguageCodeKey);
+    final savedThemeMode = prefs.getString(_themeModeKey);
+
     final supportedSavedLanguageCode =
         (savedLanguageCode == 'es' || savedLanguageCode == 'en')
             ? savedLanguageCode
             : null;
-
-    if (supportedSavedLanguageCode == null) {
-      return;
-    }
+    final resolvedThemeMode = switch (savedThemeMode) {
+      'light' => ThemeMode.light,
+      'dark' => ThemeMode.dark,
+      _ => ThemeMode.dark,
+    };
 
     if (!mounted) {
       return;
     }
 
     setState(() {
-      _currentLocale = Locale(supportedSavedLanguageCode);
+      if (supportedSavedLanguageCode != null) {
+        _currentLocale = Locale(supportedSavedLanguageCode);
+      }
+      _themeMode = resolvedThemeMode;
     });
+  }
+
+  Future<void> _setLocale(Locale locale) async {
+    if (locale.languageCode == _currentLocale.languageCode) {
+      return;
+    }
+
+    setState(() {
+      _currentLocale = locale;
+    });
+
+    final prefs = await _getSharedPreferencesSafe();
+    await prefs?.setString(_localeLanguageCodeKey, locale.languageCode);
+  }
+
+  Future<void> _setThemeMode(ThemeMode themeMode) async {
+    if (themeMode == _themeMode) {
+      return;
+    }
+
+    setState(() {
+      _themeMode = themeMode;
+    });
+
+    final prefs = await _getSharedPreferencesSafe();
+    await prefs?.setString(
+      _themeModeKey,
+      themeMode == ThemeMode.light ? 'light' : 'dark',
+    );
   }
 
   @override
@@ -89,15 +127,16 @@ class _MainAppState extends State<MainApp> {
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF55D6BE),
-          brightness: Brightness.dark,
-        ),
-        textTheme: GoogleFonts.spaceGroteskTextTheme(),
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: _themeMode,
+      home: AuthGate(
+        authService: serviceLocator<AuthService>(),
+        locale: _currentLocale,
+        themeMode: _themeMode,
+        onLocaleChanged: _setLocale,
+        onThemeModeChanged: _setThemeMode,
       ),
-      home: AuthGate(authService: serviceLocator<AuthService>()),
     );
   }
 }

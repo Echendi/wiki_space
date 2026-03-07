@@ -1,15 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/theme/app_palette.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/global_top_bar.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/presentation/widgets/space_logo.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, required this.authService});
+  const HomeScreen({
+    super.key,
+    required this.authService,
+    required this.locale,
+    required this.themeMode,
+    required this.onLocaleChanged,
+    required this.onThemeModeChanged,
+  });
 
   final AuthService authService;
+  final Locale locale;
+  final ThemeMode themeMode;
+  final ValueChanged<Locale> onLocaleChanged;
+  final ValueChanged<ThemeMode> onThemeModeChanged;
 
-  Future<void> _signOut(BuildContext context) async {
+  Future<void> _signOut(BuildContext context, AppLocalizations l10n) async {
     await authService.signOut();
     if (!context.mounted) {
       return;
@@ -17,25 +31,30 @@ class HomeScreen extends StatelessWidget {
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          behavior: SnackBarBehavior.floating,
-          content: Text('Sesion cerrada correctamente.'),
-        ),
-      );
+      ..showSnackBar(SnackBar(content: Text(l10n.signOutSuccess)));
   }
 
   @override
   Widget build(BuildContext context) {
-    final email = authService.currentUser?.email ?? 'usuario';
+    final l10n = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final email = authService.currentUser?.email ?? l10n.genericUser;
 
     return Scaffold(
+      appBar: GlobalTopBar(
+        locale: locale,
+        themeMode: themeMode,
+        onLocaleChanged: onLocaleChanged,
+        onThemeModeChanged: onThemeModeChanged,
+      ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF09172D), Color(0xFF10375A)],
+            colors: isDark
+                ? AppPalette.homeDarkGradient
+                : AppPalette.homeLightGradient,
           ),
         ),
         child: SafeArea(
@@ -49,32 +68,28 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     const SpaceLogo(size: 80),
                     FilledButton.tonalIcon(
-                      onPressed: () => _signOut(context),
+                      onPressed: () => _signOut(context, l10n),
                       style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF224569),
-                        foregroundColor: const Color(0xFFEAF5FF),
+                        backgroundColor: isDark
+                            ? AppPalette.surfaceDarkAlt
+                            : AppPalette.surfaceLightAlt,
+                        foregroundColor:
+                            isDark ? AppPalette.onDark : AppPalette.onPrimary,
                       ),
                       icon: const Icon(Icons.logout_rounded),
-                      label: const Text('Cerrar sesion'),
+                      label: Text(l10n.signOutButton),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Bienvenido a tu estacion, $email',
-                  style: GoogleFonts.orbitron(
-                    color: const Color(0xFFEAF5FF),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 24,
-                  ),
+                  l10n.homeWelcome(email),
+                  style: AppTextStyles.screenTitle(isDark),
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Tu autenticacion esta activa y la sesion se guarda de forma segura.',
-                  style: GoogleFonts.spaceGrotesk(
-                    color: const Color(0xFFCDE2F6),
-                    fontSize: 16,
-                  ),
+                  l10n.homeSubtitle,
+                  style: AppTextStyles.subtitle(isDark),
                 ),
                 const SizedBox(height: 22),
                 Expanded(
@@ -85,26 +100,23 @@ class HomeScreen extends StatelessWidget {
                     crossAxisSpacing: 14,
                     children: const [
                       _InfoCard(
-                        title: 'Navegacion',
-                        body:
-                            'Acceso inmediato al panel principal despues del login.',
+                        titleKey: _InfoCardKey.navigationTitle,
+                        bodyKey: _InfoCardKey.navigationBody,
                         icon: Icons.rocket_launch_rounded,
                       ),
                       _InfoCard(
-                        title: 'Seguridad',
-                        body: 'Token y UID almacenados en secure storage.',
+                        titleKey: _InfoCardKey.securityTitle,
+                        bodyKey: _InfoCardKey.securityBody,
                         icon: Icons.shield_moon_rounded,
                       ),
                       _InfoCard(
-                        title: 'Sesion',
-                        body:
-                            'Persistencia de usuario entre reinicios de la app.',
+                        titleKey: _InfoCardKey.sessionTitle,
+                        bodyKey: _InfoCardKey.sessionBody,
                         icon: Icons.lock_clock_rounded,
                       ),
                       _InfoCard(
-                        title: 'Estado',
-                        body:
-                            'Flujo conectado a FirebaseAuth para autenticacion real.',
+                        titleKey: _InfoCardKey.statusTitle,
+                        bodyKey: _InfoCardKey.statusBody,
                         icon: Icons.hub_rounded,
                       ),
                     ],
@@ -121,49 +133,71 @@ class HomeScreen extends StatelessWidget {
 
 class _InfoCard extends StatelessWidget {
   const _InfoCard({
-    required this.title,
-    required this.body,
+    required this.titleKey,
+    required this.bodyKey,
     required this.icon,
   });
 
-  final String title;
-  final String body;
+  final _InfoCardKey titleKey;
+  final _InfoCardKey bodyKey;
   final IconData icon;
+
+  String _resolveKey(AppLocalizations l10n, _InfoCardKey key) {
+    return switch (key) {
+      _InfoCardKey.navigationTitle => l10n.cardNavigationTitle,
+      _InfoCardKey.navigationBody => l10n.cardNavigationBody,
+      _InfoCardKey.securityTitle => l10n.cardSecurityTitle,
+      _InfoCardKey.securityBody => l10n.cardSecurityBody,
+      _InfoCardKey.sessionTitle => l10n.cardSessionTitle,
+      _InfoCardKey.sessionBody => l10n.cardSessionBody,
+      _InfoCardKey.statusTitle => l10n.cardStatusTitle,
+      _InfoCardKey.statusBody => l10n.cardStatusBody,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0x1AF4FBFF),
+        color: (isDark ? AppPalette.surfaceLight : AppPalette.surfaceLightAlt)
+            .withValues(alpha: isDark ? 0.10 : 0.62),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0x4D7BD4C7)),
+        border: Border.all(
+          color: AppPalette.accent.withValues(alpha: isDark ? 0.35 : 0.5),
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: const Color(0xFF80E2CF), size: 28),
+            Icon(icon, color: AppPalette.primary, size: 28),
             const SizedBox(height: 10),
             Text(
-              title,
-              style: GoogleFonts.orbitron(
-                color: const Color(0xFFEAF5FF),
-                fontWeight: FontWeight.w700,
-                fontSize: 16,
-              ),
+              _resolveKey(l10n, titleKey),
+              style: AppTextStyles.screenTitle(isDark).copyWith(fontSize: 16),
             ),
             const SizedBox(height: 8),
             Text(
-              body,
-              style: GoogleFonts.spaceGrotesk(
-                color: const Color(0xFFD4E8FA),
-                height: 1.25,
-              ),
+              _resolveKey(l10n, bodyKey),
+              style: AppTextStyles.bodyMd(isDark),
             ),
           ],
         ),
       ),
     );
   }
+}
+
+enum _InfoCardKey {
+  navigationTitle,
+  navigationBody,
+  securityTitle,
+  securityBody,
+  sessionTitle,
+  sessionBody,
+  statusTitle,
+  statusBody,
 }

@@ -22,4 +22,154 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get englishOption => 'Inglés';
+
+  @override
+  String get themeLightLabel => 'Tema claro';
+
+  @override
+  String get themeDarkLabel => 'Tema oscuro';
+
+  @override
+  String get genericUser => 'usuario';
+
+  @override
+  String get loginTitle => 'Inicia sesión y despega';
+
+  @override
+  String get loginSubtitle =>
+      'Accede a tu bitácora estelar con seguridad reforzada.';
+
+  @override
+  String get emailLabel => 'Correo electrónico';
+
+  @override
+  String get passwordLabel => 'Contraseña';
+
+  @override
+  String get passwordRules =>
+      'La contraseña debe tener 8+ caracteres, 1 mayúscula, 1 número y 1 símbolo.';
+
+  @override
+  String get loginButton => 'Entrar al espacio';
+
+  @override
+  String get continueWith => 'o continúa con';
+
+  @override
+  String get continueWithGoogle => 'Continuar con Google';
+
+  @override
+  String get continueWithFacebook => 'Continuar con Facebook';
+
+  @override
+  String get emailRequired => 'El email es obligatorio.';
+
+  @override
+  String get emailInvalid => 'Ingresa un email válido.';
+
+  @override
+  String get passwordRequired => 'La contraseña es obligatoria.';
+
+  @override
+  String get passwordLengthError => 'Debe tener mínimo 8 caracteres.';
+
+  @override
+  String get passwordUppercaseError =>
+      'Debe incluir al menos una letra mayúscula.';
+
+  @override
+  String get passwordNumberError => 'Debe incluir al menos un número.';
+
+  @override
+  String get passwordSpecialError =>
+      'Debe incluir al menos un carácter especial.';
+
+  @override
+  String get socialSignInUnavailable =>
+      'No fue posible iniciar sesión con el proveedor seleccionado.';
+
+  @override
+  String get googleSignInConfigError =>
+      'Google Sign-In no está bien configurado (SHA-1/SHA-256 u OAuth).';
+
+  @override
+  String get networkProviderError =>
+      'No hay conexión de red para autenticar con el proveedor.';
+
+  @override
+  String get signInUnexpectedError =>
+      'Ocurrió un error inesperado al iniciar sesión.';
+
+  @override
+  String get firebaseInvalidEmail => 'El correo electrónico no es válido.';
+
+  @override
+  String get firebaseInvalidCredentials =>
+      'Credenciales inválidas. Verifica email y contraseña.';
+
+  @override
+  String get firebaseTooManyRequests =>
+      'Demasiados intentos. Intenta nuevamente en unos minutos.';
+
+  @override
+  String get firebaseNetworkError =>
+      'Sin conexión. Verifica tu internet e inténtalo de nuevo.';
+
+  @override
+  String get firebaseAccountExistsDifferentProvider =>
+      'Esta cuenta ya existe con otro método de inicio de sesión.';
+
+  @override
+  String get firebaseFacebookLoginFailed =>
+      'No se pudo iniciar sesión con Facebook.';
+
+  @override
+  String get firebaseOperationNotAllowed =>
+      'El método de autenticación no está habilitado.';
+
+  @override
+  String get firebaseAuthFallbackError =>
+      'No fue posible autenticarte en este momento.';
+
+  @override
+  String get signOutSuccess => 'Sesión cerrada correctamente.';
+
+  @override
+  String get signOutButton => 'Cerrar sesión';
+
+  @override
+  String homeWelcome(String email) {
+    return 'Bienvenido a tu estación, $email';
+  }
+
+  @override
+  String get homeSubtitle =>
+      'Tu autenticación está activa y la sesión se guarda de forma segura.';
+
+  @override
+  String get cardNavigationTitle => 'Navegación';
+
+  @override
+  String get cardNavigationBody =>
+      'Acceso inmediato al panel principal después del login.';
+
+  @override
+  String get cardSecurityTitle => 'Seguridad';
+
+  @override
+  String get cardSecurityBody => 'Token y UID almacenados en secure storage.';
+
+  @override
+  String get cardSessionTitle => 'Sesión';
+
+  @override
+  String get cardSessionBody =>
+      'Persistencia de usuario entre reinicios de la app.';
+
+  @override
+  String get cardStatusTitle => 'Estado';
+
+  @override
+  String get cardStatusBody =>
+      'Flujo conectado a FirebaseAuth para autenticación real.';
 }

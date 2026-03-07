@@ -1,7 +1,9 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class SpaceLogo extends StatelessWidget {
   const SpaceLogo({super.key, this.size = 112});
@@ -10,22 +12,18 @@ class SpaceLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         CustomPaint(
           size: Size.square(size),
-          painter: _PlanetLogoPainter(),
+          painter: _PlanetLogoPainter(isDark: isDark),
         ),
         const SizedBox(height: 10),
         Text(
           'WIKI SPACE',
-          style: GoogleFonts.orbitron(
-            color: const Color(0xFFE8F4FF),
-            letterSpacing: 2.2,
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-          ),
+          style: AppTextStyles.logo(isDark),
         ),
       ],
     );
@@ -33,6 +31,10 @@ class SpaceLogo extends StatelessWidget {
 }
 
 class _PlanetLogoPainter extends CustomPainter {
+  const _PlanetLogoPainter({required this.isDark});
+
+  final bool isDark;
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
@@ -41,7 +43,7 @@ class _PlanetLogoPainter extends CustomPainter {
     final glowPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          const Color(0xFF55D6BE).withValues(alpha: 0.45),
+          AppPalette.primary.withValues(alpha: isDark ? 0.45 : 0.28),
           Colors.transparent,
         ],
       ).createShader(Rect.fromCircle(center: center, radius: radius));
@@ -49,10 +51,10 @@ class _PlanetLogoPainter extends CustomPainter {
     canvas.drawCircle(center, radius, glowPaint);
 
     final planetPaint = Paint()
-      ..shader = const LinearGradient(
+      ..shader = LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFF4CE0C2), Color(0xFF2B8BCF)],
+        colors: [AppPalette.primary, AppPalette.secondary],
       ).createShader(Rect.fromCircle(center: center, radius: radius * 0.62));
 
     canvas.drawCircle(center, radius * 0.62, planetPaint);
@@ -60,7 +62,7 @@ class _PlanetLogoPainter extends CustomPainter {
     final ringPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 7
-      ..color = const Color(0xFFF5F8FF).withValues(alpha: 0.88);
+      ..color = AppPalette.star.withValues(alpha: isDark ? 0.88 : 0.72);
 
     final ringRect = Rect.fromCenter(
       center: center.translate(0, 4),
@@ -76,13 +78,13 @@ class _PlanetLogoPainter extends CustomPainter {
     canvas.restore();
 
     final craterPaint = Paint()
-      ..color = const Color(0xFF0E3256).withValues(alpha: 0.2);
+      ..color = AppPalette.onPrimary.withValues(alpha: 0.2);
     canvas.drawCircle(center.translate(-radius * 0.15, -radius * 0.15),
         radius * 0.11, craterPaint);
     canvas.drawCircle(center.translate(radius * 0.18, radius * 0.06),
         radius * 0.08, craterPaint);
 
-    final starPaint = Paint()..color = const Color(0xFFE8F4FF);
+    final starPaint = Paint()..color = AppPalette.star;
     for (var i = 0; i < 6; i++) {
       final angle = (i / 6) * 2 * math.pi;
       final distance = radius * 0.95;
@@ -95,5 +97,7 @@ class _PlanetLogoPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _PlanetLogoPainter oldDelegate) {
+    return oldDelegate.isDark != isDark;
+  }
 }

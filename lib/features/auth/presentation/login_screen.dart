@@ -3,15 +3,29 @@ import 'dart:math' as math;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/theme/app_palette.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/global_top_bar.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../data/auth_service.dart';
 import 'widgets/space_logo.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, required this.authService});
+  const LoginScreen({
+    super.key,
+    required this.authService,
+    required this.locale,
+    required this.themeMode,
+    required this.onLocaleChanged,
+    required this.onThemeModeChanged,
+  });
 
   final AuthService authService;
+  final Locale locale;
+  final ThemeMode themeMode;
+  final ValueChanged<Locale> onLocaleChanged;
+  final ValueChanged<ThemeMode> onThemeModeChanged;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -52,9 +66,15 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text.trim(),
       );
     } on FirebaseAuthException catch (error) {
+      if (!mounted) {
+        return;
+      }
       _showError(_firebaseMessageForCode(error.code));
     } catch (_) {
-      _showError('Ocurrio un error inesperado al iniciar sesion.');
+      if (!mounted) {
+        return;
+      }
+      _showError(AppLocalizations.of(context).signInUnexpectedError);
     } finally {
       if (mounted) {
         setState(() {
@@ -81,14 +101,22 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await action();
     } on PlatformException catch (error) {
+      if (!mounted) {
+        return;
+      }
       _showError(_socialPlatformErrorMessage(error));
     } on FirebaseAuthException catch (error) {
+      if (!mounted) {
+        return;
+      }
       if (error.code != 'aborted-by-user') {
         _showError(_firebaseMessageForCode(error.code));
       }
     } catch (_) {
-      _showError(
-          'No fue posible iniciar sesion con el proveedor seleccionado.');
+      if (!mounted) {
+        return;
+      }
+      _showError(AppLocalizations.of(context).socialSignInUnavailable);
     } finally {
       if (mounted) {
         setState(() {
@@ -99,20 +127,21 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   String _socialPlatformErrorMessage(PlatformException error) {
+    final l10n = AppLocalizations.of(context);
     final details = (error.details ?? '').toString().toLowerCase();
     final code = error.code.toLowerCase();
 
     if (details.contains('apiexception: 10') ||
         details.contains('developer_error') ||
         code.contains('sign_in_failed')) {
-      return 'Google Sign-In no esta bien configurado (SHA-1/SHA-256 u OAuth).';
+      return l10n.googleSignInConfigError;
     }
 
     if (code.contains('network_error')) {
-      return 'No hay conexion de red para autenticar con el proveedor.';
+      return l10n.networkProviderError;
     }
 
-    return 'No fue posible iniciar sesion con el proveedor seleccionado.';
+    return l10n.socialSignInUnavailable;
   }
 
   void _showError(String message) {
@@ -120,71 +149,73 @@ class _LoginScreenState extends State<LoginScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: const Color(0xFFD4495B),
+          backgroundColor: AppPalette.error,
           content: Text(message),
         ),
       );
   }
 
   String _firebaseMessageForCode(String code) {
+    final l10n = AppLocalizations.of(context);
     switch (code) {
       case 'invalid-email':
-        return 'El correo electronico no es valido.';
+        return l10n.firebaseInvalidEmail;
       case 'invalid-credential':
       case 'user-not-found':
       case 'wrong-password':
-        return 'Credenciales invalidas. Verifica email y contrasena.';
+        return l10n.firebaseInvalidCredentials;
       case 'too-many-requests':
-        return 'Demasiados intentos. Intenta nuevamente en unos minutos.';
+        return l10n.firebaseTooManyRequests;
       case 'network-request-failed':
-        return 'Sin conexion. Verifica tu internet e intentalo de nuevo.';
+        return l10n.firebaseNetworkError;
       case 'account-exists-with-different-credential':
-        return 'Esta cuenta ya existe con otro metodo de inicio de sesion.';
+        return l10n.firebaseAccountExistsDifferentProvider;
       case 'facebook-login-failed':
-        return 'No se pudo iniciar sesion con Facebook.';
+        return l10n.firebaseFacebookLoginFailed;
       case 'operation-not-allowed':
-        return 'El metodo de autenticacion no esta habilitado.';
+        return l10n.firebaseOperationNotAllowed;
       default:
-        return 'No fue posible autenticarte en este momento.';
+        return l10n.firebaseAuthFallbackError;
     }
   }
 
   String? _validateEmail(String? value) {
+    final l10n = AppLocalizations.of(context);
     final email = value?.trim() ?? '';
     if (email.isEmpty) {
-      return 'El email es obligatorio.';
+      return l10n.emailRequired;
     }
 
     final regex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
     if (!regex.hasMatch(email)) {
-      return 'Ingresa un email valido.';
+      return l10n.emailInvalid;
     }
 
     return null;
   }
 
   String? _validatePassword(String? value) {
+    final l10n = AppLocalizations.of(context);
     final password = value ?? '';
 
     if (password.isEmpty) {
-      return 'La contrasena es obligatoria.';
+      return l10n.passwordRequired;
     }
 
     if (password.length < 8) {
-      return 'Debe tener minimo 8 caracteres.';
+      return l10n.passwordLengthError;
     }
 
     if (!RegExp(r'[A-Z]').hasMatch(password)) {
-      return 'Debe incluir al menos una letra mayuscula.';
+      return l10n.passwordUppercaseError;
     }
 
     if (!RegExp(r'[0-9]').hasMatch(password)) {
-      return 'Debe incluir al menos un numero.';
+      return l10n.passwordNumberError;
     }
 
     if (!RegExp(r'[^A-Za-z0-9]').hasMatch(password)) {
-      return 'Debe incluir al menos un caracter especial.';
+      return l10n.passwordSpecialError;
     }
 
     return null;
@@ -192,7 +223,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
+      appBar: GlobalTopBar(
+        locale: widget.locale,
+        themeMode: widget.themeMode,
+        onLocaleChanged: widget.onLocaleChanged,
+        onThemeModeChanged: widget.onThemeModeChanged,
+      ),
       body: Stack(
         children: [
           const _SpaceBackground(),
@@ -205,14 +245,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   constraints: const BoxConstraints(maxWidth: 440),
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0E1F36).withValues(alpha: 0.86),
+                      color: (isDark
+                              ? AppPalette.surfaceDark
+                              : AppPalette.surfaceLight)
+                          .withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(28),
                       border: Border.all(
-                        color: const Color(0xFF79D7C5).withValues(alpha: 0.25),
+                        color: AppPalette.accent.withValues(alpha: 0.28),
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.25),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .shadow
+                              .withValues(alpha: 0.25),
                           blurRadius: 24,
                           offset: const Offset(0, 14),
                         ),
@@ -229,27 +275,21 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SpaceLogo(),
                             const SizedBox(height: 16),
                             Text(
-                              'Inicia sesion y despega',
+                              l10n.loginTitle,
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.orbitron(
-                                color: const Color(0xFFEAF5FF),
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                              ),
+                              style: AppTextStyles.screenTitle(isDark),
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Accede a tu bitacora estelar con seguridad reforzada.',
+                              l10n.loginSubtitle,
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.spaceGrotesk(
-                                color: const Color(0xFFD3E4F7),
-                                fontSize: 15,
-                              ),
+                              style: AppTextStyles.subtitle(isDark)
+                                  .copyWith(fontSize: 15),
                             ),
                             const SizedBox(height: 22),
                             _ThemedField(
                               controller: _emailController,
-                              label: 'Correo electronico',
+                              label: l10n.emailLabel,
                               icon: Icons.alternate_email_rounded,
                               keyboardType: TextInputType.emailAddress,
                               validator: _validateEmail,
@@ -258,7 +298,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SizedBox(height: 14),
                             _ThemedField(
                               controller: _passwordController,
-                              label: 'Contrasena',
+                              label: l10n.passwordLabel,
                               icon: Icons.lock_outline_rounded,
                               validator: _validatePassword,
                               obscureText: _obscurePassword,
@@ -274,17 +314,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                   _obscurePassword
                                       ? Icons.visibility_rounded
                                       : Icons.visibility_off_rounded,
-                                  color: const Color(0xFFC6DFFF),
+                                  color: isDark
+                                      ? AppPalette.onDarkMuted
+                                      : AppPalette.onPrimary
+                                          .withValues(alpha: 0.72),
                                 ),
                               ),
                             ),
                             const SizedBox(height: 10),
                             Text(
-                              'La contrasena debe tener 8+ caracteres, 1 mayuscula, 1 numero y 1 simbolo.',
-                              style: GoogleFonts.spaceGrotesk(
-                                color: const Color(0xFFA4C2E4),
-                                fontSize: 12.5,
-                              ),
+                              l10n.passwordRules,
+                              style: AppTextStyles.caption(isDark),
                             ),
                             const SizedBox(height: 20),
                             SizedBox(
@@ -293,8 +333,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 onPressed: _isAnyLoading ? null : _submit,
                                 style: ElevatedButton.styleFrom(
                                   elevation: 0,
-                                  backgroundColor: const Color(0xFF55D6BE),
-                                  foregroundColor: const Color(0xFF06223C),
+                                  backgroundColor: AppPalette.primary,
+                                  foregroundColor: AppPalette.onPrimary,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
                                   ),
@@ -307,16 +347,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                           strokeWidth: 2.5,
                                           valueColor:
                                               AlwaysStoppedAnimation<Color>(
-                                            Color(0xFF06223C),
+                                            AppPalette.onPrimary,
                                           ),
                                         ),
                                       )
                                     : Text(
-                                        'Entrar al espacio',
-                                        style: GoogleFonts.spaceGrotesk(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 16,
-                                        ),
+                                        l10n.loginButton,
+                                        style: AppTextStyles.primaryCta(),
                                       ),
                               ),
                             ),
@@ -325,7 +362,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               children: [
                                 Expanded(
                                   child: Divider(
-                                    color: const Color(0xFF79D7C5)
+                                    color: AppPalette.accent
                                         .withValues(alpha: 0.35),
                                   ),
                                 ),
@@ -333,16 +370,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 10),
                                   child: Text(
-                                    'o continua con',
-                                    style: GoogleFonts.spaceGrotesk(
-                                      color: const Color(0xFFAECBE8),
-                                      fontSize: 12,
-                                    ),
+                                    l10n.continueWith,
+                                    style: AppTextStyles.overline(isDark),
                                   ),
                                 ),
                                 Expanded(
                                   child: Divider(
-                                    color: const Color(0xFF79D7C5)
+                                    color: AppPalette.accent
                                         .withValues(alpha: 0.35),
                                   ),
                                 ),
@@ -350,19 +384,20 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             const SizedBox(height: 14),
                             _SocialButton(
-                              label: 'Continuar con Google',
+                              label: l10n.continueWithGoogle,
                               iconText: 'G',
-                              iconBackground: const Color(0xFFFFE2CC),
-                              iconColor: const Color(0xFF8F3A00),
+                              iconBackground: AppPalette.googleBadgeBackground,
+                              iconColor: AppPalette.googleBadgeForeground,
                               onPressed:
                                   _isAnyLoading ? null : _signInWithGoogle,
                             ),
                             const SizedBox(height: 10),
                             _SocialButton(
-                              label: 'Continuar con Facebook',
+                              label: l10n.continueWithFacebook,
                               iconText: 'f',
-                              iconBackground: const Color(0xFFD2E3FF),
-                              iconColor: const Color(0xFF0B48B8),
+                              iconBackground:
+                                  AppPalette.facebookBadgeBackground,
+                              iconColor: AppPalette.facebookBadgeForeground,
                               onPressed:
                                   _isAnyLoading ? null : _signInWithFacebook,
                             ),
@@ -398,15 +433,18 @@ class _SocialButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SizedBox(
       height: 52,
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
           side: BorderSide(
-            color: const Color(0xFF79D7C5).withValues(alpha: 0.35),
+            color: AppPalette.accent.withValues(alpha: 0.35),
           ),
-          backgroundColor: const Color(0xFF102A47).withValues(alpha: 0.72),
+          backgroundColor:
+              (isDark ? AppPalette.surfaceDarkAlt : AppPalette.surfaceLightAlt)
+                  .withValues(alpha: isDark ? 0.72 : 0.9),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
@@ -424,21 +462,13 @@ class _SocialButton extends StatelessWidget {
               ),
               child: Text(
                 iconText,
-                style: GoogleFonts.orbitron(
-                  color: iconColor,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                ),
+                style: AppTextStyles.socialBadgeGlyph(iconColor),
               ),
             ),
             const SizedBox(width: 10),
             Text(
               label,
-              style: GoogleFonts.spaceGrotesk(
-                color: const Color(0xFFEAF5FF),
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-              ),
+              style: AppTextStyles.buttonLabel(isDark),
             ),
           ],
         ),
@@ -472,6 +502,7 @@ class _ThemedField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextFormField(
       controller: controller,
       validator: validator,
@@ -479,22 +510,21 @@ class _ThemedField extends StatelessWidget {
       obscureText: obscureText,
       textInputAction: textInputAction,
       onFieldSubmitted: onFieldSubmitted,
-      style: GoogleFonts.spaceGrotesk(
-        color: const Color(0xFFEAF5FF),
-        fontWeight: FontWeight.w500,
-      ),
+      style: AppTextStyles.inputText(isDark),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: GoogleFonts.spaceGrotesk(color: const Color(0xFFC6DFFF)),
-        prefixIcon: Icon(icon, color: const Color(0xFF79D7C5)),
+        labelStyle: AppTextStyles.inputLabel(isDark),
+        prefixIcon: Icon(icon, color: AppPalette.accent),
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: const Color(0xFF102A47).withValues(alpha: 0.82),
+        fillColor:
+            (isDark ? AppPalette.surfaceDarkAlt : AppPalette.surfaceLight)
+                .withValues(alpha: isDark ? 0.82 : 1),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
-        errorStyle: GoogleFonts.spaceGrotesk(),
+        errorStyle: AppTextStyles.errorStyle(),
       ),
     );
   }
@@ -525,22 +555,39 @@ class _SpaceBackgroundState extends State<_SpaceBackground>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color.lerp(const Color(0xFF08142A), const Color(0xFF0A2A3F),
-                    _controller.value)!,
-                const Color(0xFF0E1B35),
-                Color.lerp(const Color(0xFF112C48), const Color(0xFF1F365A),
-                    _controller.value)!,
+                Color.lerp(
+                  isDark
+                      ? AppPalette.backgroundDark
+                      : AppPalette.backgroundLight,
+                  isDark
+                      ? AppPalette.surfaceDarkAlt
+                      : AppPalette.surfaceLightAlt,
+                  _controller.value,
+                )!,
+                isDark ? AppPalette.surfaceDark : AppPalette.surfaceLight,
+                Color.lerp(
+                  isDark
+                      ? AppPalette.surfaceDarkAlt
+                      : AppPalette.surfaceLightAlt,
+                  isDark ? AppPalette.secondary : AppPalette.accent,
+                  _controller.value,
+                )!,
               ],
             ),
           ),
           child: CustomPaint(
-            painter: _StarfieldPainter(seed: 21, progress: _controller.value),
+            painter: _StarfieldPainter(
+              seed: 21,
+              progress: _controller.value,
+              isDark: isDark,
+            ),
             child: const SizedBox.expand(),
           ),
         );
@@ -550,15 +597,20 @@ class _SpaceBackgroundState extends State<_SpaceBackground>
 }
 
 class _StarfieldPainter extends CustomPainter {
-  const _StarfieldPainter({required this.seed, required this.progress});
+  const _StarfieldPainter({
+    required this.seed,
+    required this.progress,
+    required this.isDark,
+  });
 
   final int seed;
   final double progress;
+  final bool isDark;
 
   @override
   void paint(Canvas canvas, Size size) {
     final rng = math.Random(seed);
-    final starPaint = Paint()..color = const Color(0xFFE8F4FF);
+    final starPaint = Paint()..color = AppPalette.star;
 
     for (var i = 0; i < 100; i++) {
       final x = rng.nextDouble() * size.width;
@@ -567,13 +619,17 @@ class _StarfieldPainter extends CustomPainter {
       final animated =
           (0.75 + math.sin((progress * math.pi * 2) + i) * 0.25) * twinkle;
       starPaint.color =
-          const Color(0xFFE8F4FF).withValues(alpha: animated.clamp(0.2, 1));
+          AppPalette.star.withValues(alpha: animated.clamp(0.2, 1));
       canvas.drawCircle(Offset(x, y), rng.nextDouble() * 1.8 + 0.4, starPaint);
     }
 
     final nebulaPaint = Paint()
-      ..shader = const RadialGradient(
-        colors: [Color(0x4443D9C6), Colors.transparent],
+      ..shader = RadialGradient(
+        colors: [
+          (isDark ? AppPalette.primary : AppPalette.secondary)
+              .withValues(alpha: isDark ? 0.25 : 0.17),
+          Colors.transparent,
+        ],
       ).createShader(
         Rect.fromCircle(
           center: Offset(size.width * 0.82, size.height * 0.15),
@@ -590,6 +646,6 @@ class _StarfieldPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _StarfieldPainter oldDelegate) {
-    return oldDelegate.progress != progress;
+    return oldDelegate.progress != progress || oldDelegate.isDark != isDark;
   }
 }

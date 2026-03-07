@@ -127,6 +127,264 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Inglés'**
   String get englishOption;
+
+  /// No description provided for @themeLightLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Tema claro'**
+  String get themeLightLabel;
+
+  /// No description provided for @themeDarkLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Tema oscuro'**
+  String get themeDarkLabel;
+
+  /// No description provided for @genericUser.
+  ///
+  /// In es, this message translates to:
+  /// **'usuario'**
+  String get genericUser;
+
+  /// No description provided for @loginTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Inicia sesión y despega'**
+  String get loginTitle;
+
+  /// No description provided for @loginSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Accede a tu bitácora estelar con seguridad reforzada.'**
+  String get loginSubtitle;
+
+  /// No description provided for @emailLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Correo electrónico'**
+  String get emailLabel;
+
+  /// No description provided for @passwordLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Contraseña'**
+  String get passwordLabel;
+
+  /// No description provided for @passwordRules.
+  ///
+  /// In es, this message translates to:
+  /// **'La contraseña debe tener 8+ caracteres, 1 mayúscula, 1 número y 1 símbolo.'**
+  String get passwordRules;
+
+  /// No description provided for @loginButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Entrar al espacio'**
+  String get loginButton;
+
+  /// No description provided for @continueWith.
+  ///
+  /// In es, this message translates to:
+  /// **'o continúa con'**
+  String get continueWith;
+
+  /// No description provided for @continueWithGoogle.
+  ///
+  /// In es, this message translates to:
+  /// **'Continuar con Google'**
+  String get continueWithGoogle;
+
+  /// No description provided for @continueWithFacebook.
+  ///
+  /// In es, this message translates to:
+  /// **'Continuar con Facebook'**
+  String get continueWithFacebook;
+
+  /// No description provided for @emailRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'El email es obligatorio.'**
+  String get emailRequired;
+
+  /// No description provided for @emailInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa un email válido.'**
+  String get emailInvalid;
+
+  /// No description provided for @passwordRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'La contraseña es obligatoria.'**
+  String get passwordRequired;
+
+  /// No description provided for @passwordLengthError.
+  ///
+  /// In es, this message translates to:
+  /// **'Debe tener mínimo 8 caracteres.'**
+  String get passwordLengthError;
+
+  /// No description provided for @passwordUppercaseError.
+  ///
+  /// In es, this message translates to:
+  /// **'Debe incluir al menos una letra mayúscula.'**
+  String get passwordUppercaseError;
+
+  /// No description provided for @passwordNumberError.
+  ///
+  /// In es, this message translates to:
+  /// **'Debe incluir al menos un número.'**
+  String get passwordNumberError;
+
+  /// No description provided for @passwordSpecialError.
+  ///
+  /// In es, this message translates to:
+  /// **'Debe incluir al menos un carácter especial.'**
+  String get passwordSpecialError;
+
+  /// No description provided for @socialSignInUnavailable.
+  ///
+  /// In es, this message translates to:
+  /// **'No fue posible iniciar sesión con el proveedor seleccionado.'**
+  String get socialSignInUnavailable;
+
+  /// No description provided for @googleSignInConfigError.
+  ///
+  /// In es, this message translates to:
+  /// **'Google Sign-In no está bien configurado (SHA-1/SHA-256 u OAuth).'**
+  String get googleSignInConfigError;
+
+  /// No description provided for @networkProviderError.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay conexión de red para autenticar con el proveedor.'**
+  String get networkProviderError;
+
+  /// No description provided for @signInUnexpectedError.
+  ///
+  /// In es, this message translates to:
+  /// **'Ocurrió un error inesperado al iniciar sesión.'**
+  String get signInUnexpectedError;
+
+  /// No description provided for @firebaseInvalidEmail.
+  ///
+  /// In es, this message translates to:
+  /// **'El correo electrónico no es válido.'**
+  String get firebaseInvalidEmail;
+
+  /// No description provided for @firebaseInvalidCredentials.
+  ///
+  /// In es, this message translates to:
+  /// **'Credenciales inválidas. Verifica email y contraseña.'**
+  String get firebaseInvalidCredentials;
+
+  /// No description provided for @firebaseTooManyRequests.
+  ///
+  /// In es, this message translates to:
+  /// **'Demasiados intentos. Intenta nuevamente en unos minutos.'**
+  String get firebaseTooManyRequests;
+
+  /// No description provided for @firebaseNetworkError.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin conexión. Verifica tu internet e inténtalo de nuevo.'**
+  String get firebaseNetworkError;
+
+  /// No description provided for @firebaseAccountExistsDifferentProvider.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta cuenta ya existe con otro método de inicio de sesión.'**
+  String get firebaseAccountExistsDifferentProvider;
+
+  /// No description provided for @firebaseFacebookLoginFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo iniciar sesión con Facebook.'**
+  String get firebaseFacebookLoginFailed;
+
+  /// No description provided for @firebaseOperationNotAllowed.
+  ///
+  /// In es, this message translates to:
+  /// **'El método de autenticación no está habilitado.'**
+  String get firebaseOperationNotAllowed;
+
+  /// No description provided for @firebaseAuthFallbackError.
+  ///
+  /// In es, this message translates to:
+  /// **'No fue posible autenticarte en este momento.'**
+  String get firebaseAuthFallbackError;
+
+  /// No description provided for @signOutSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Sesión cerrada correctamente.'**
+  String get signOutSuccess;
+
+  /// No description provided for @signOutButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrar sesión'**
+  String get signOutButton;
+
+  /// No description provided for @homeWelcome.
+  ///
+  /// In es, this message translates to:
+  /// **'Bienvenido a tu estación, {email}'**
+  String homeWelcome(String email);
+
+  /// No description provided for @homeSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu autenticación está activa y la sesión se guarda de forma segura.'**
+  String get homeSubtitle;
+
+  /// No description provided for @cardNavigationTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Navegación'**
+  String get cardNavigationTitle;
+
+  /// No description provided for @cardNavigationBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Acceso inmediato al panel principal después del login.'**
+  String get cardNavigationBody;
+
+  /// No description provided for @cardSecurityTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Seguridad'**
+  String get cardSecurityTitle;
+
+  /// No description provided for @cardSecurityBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Token y UID almacenados en secure storage.'**
+  String get cardSecurityBody;
+
+  /// No description provided for @cardSessionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sesión'**
+  String get cardSessionTitle;
+
+  /// No description provided for @cardSessionBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Persistencia de usuario entre reinicios de la app.'**
+  String get cardSessionBody;
+
+  /// No description provided for @cardStatusTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado'**
+  String get cardStatusTitle;
+
+  /// No description provided for @cardStatusBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Flujo conectado a FirebaseAuth para autenticación real.'**
+  String get cardStatusBody;
 }
 
 class _AppLocalizationsDelegate
