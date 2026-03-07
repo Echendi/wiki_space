@@ -20,7 +20,7 @@ dependencies:
 
   # Local database — Drift
   drift: ^2.23.1
-  drift_flutter: ^0.2.4          
+  drift_flutter: ^0.2.4
 
   # Dependency injection
   get_it: ^9.2.1
@@ -55,7 +55,7 @@ dev_dependencies:
 
   # Code generation
   build_runner: ^2.4.9
-  drift_dev: ^2.23.1             
+  drift_dev: ^2.23.1
   injectable_generator: ^2.4.1
 
   # Testing
@@ -63,4 +63,5 @@ dev_dependencies:
   mocktail: ^1.0.4
 
 flutter:
+  generate: true
   uses-material-design: true

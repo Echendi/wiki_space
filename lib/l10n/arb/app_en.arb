@@ -1,0 +1,8 @@
+{
+  "@@locale": "en",
+  "appTitle": "Wiki Space",
+  "helloWorld": "Hello World",
+  "languageLabel": "Language",
+  "spanishOption": "Spanish",
+  "englishOption": "English"
+}
