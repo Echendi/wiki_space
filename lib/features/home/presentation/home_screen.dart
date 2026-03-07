@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_palette.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/global_top_bar.dart';
@@ -90,6 +92,24 @@ class HomeScreen extends StatelessWidget {
                 Text(
                   l10n.homeSubtitle,
                   style: AppTextStyles.subtitle(isDark),
+                ),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () =>
+                          context.push('${AppRoutes.detail}?id=featured-space'),
+                      icon: const Icon(Icons.open_in_new_rounded),
+                      label: Text(l10n.goToDetailButton),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () => context.push(AppRoutes.profail),
+                      icon: const Icon(Icons.person_rounded),
+                      label: Text(l10n.goToProfileButton),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 22),
                 Expanded(

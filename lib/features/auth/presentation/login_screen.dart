@@ -3,7 +3,9 @@ import 'dart:math' as math;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_palette.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/global_top_bar.dart';
@@ -400,6 +402,13 @@ class _LoginScreenState extends State<LoginScreen> {
                               iconColor: AppPalette.facebookBadgeForeground,
                               onPressed:
                                   _isAnyLoading ? null : _signInWithFacebook,
+                            ),
+                            const SizedBox(height: 14),
+                            TextButton(
+                              onPressed: _isAnyLoading
+                                  ? null
+                                  : () => context.push(AppRoutes.register),
+                              child: Text(l10n.goToRegisterButton),
                             ),
                           ],
                         ),

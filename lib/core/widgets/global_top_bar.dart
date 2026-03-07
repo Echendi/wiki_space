@@ -9,12 +9,16 @@ class GlobalTopBar extends StatelessWidget implements PreferredSizeWidget {
     required this.themeMode,
     required this.onLocaleChanged,
     required this.onThemeModeChanged,
+    this.showBackButton = false,
+    this.onBackPressed,
   });
 
   final Locale locale;
   final ThemeMode themeMode;
   final ValueChanged<Locale> onLocaleChanged;
   final ValueChanged<ThemeMode> onThemeModeChanged;
+  final bool showBackButton;
+  final VoidCallback? onBackPressed;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -22,19 +26,30 @@ class GlobalTopBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final currentThemeMode = Theme.of(context).brightness == Brightness.dark
+        ? ThemeMode.dark
+        : ThemeMode.light;
 
     return AppBar(
+      leading: showBackButton
+          ? IconButton(
+              onPressed:
+                  onBackPressed ?? () => Navigator.of(context).maybePop(),
+              icon: const Icon(Icons.arrow_back_rounded),
+            )
+          : null,
       title: Text(l10n.appTitle),
       actions: [
         IconButton(
-          tooltip: _themeTooltip(l10n),
+          tooltip: _themeTooltip(l10n, currentThemeMode),
           onPressed: () {
-            final nextMode =
-                themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+            final nextMode = currentThemeMode == ThemeMode.dark
+                ? ThemeMode.light
+                : ThemeMode.dark;
             onThemeModeChanged(nextMode);
           },
           icon: Icon(
-            themeMode == ThemeMode.dark
+            currentThemeMode == ThemeMode.dark
                 ? Icons.dark_mode_rounded
                 : Icons.light_mode_rounded,
           ),
@@ -70,8 +85,8 @@ class GlobalTopBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  String _themeTooltip(AppLocalizations l10n) {
-    return themeMode == ThemeMode.dark
+  String _themeTooltip(AppLocalizations l10n, ThemeMode currentThemeMode) {
+    return currentThemeMode == ThemeMode.dark
         ? l10n.themeDarkLabel
         : l10n.themeLightLabel;
   }

@@ -138,6 +138,51 @@ class AppLocalizationsEs extends AppLocalizations {
   String get signOutButton => 'Cerrar sesión';
 
   @override
+  String get loadingLabel => 'Cargando...';
+
+  @override
+  String get registerTitle => 'Crea tu cuenta';
+
+  @override
+  String get registerButton => 'Registrarse';
+
+  @override
+  String get goToRegisterButton => 'Crear cuenta';
+
+  @override
+  String get registerSuccess => 'Cuenta creada correctamente.';
+
+  @override
+  String get registerError => 'No se pudo completar el registro.';
+
+  @override
+  String get confirmPasswordLabel => 'Confirmar contraseña';
+
+  @override
+  String get passwordMismatch => 'Las contraseñas no coinciden.';
+
+  @override
+  String get detailTitle => 'Detalle';
+
+  @override
+  String get articleIdLabel => 'ID del artículo';
+
+  @override
+  String get profileTitle => 'Perfil';
+
+  @override
+  String get profileEmailLabel => 'Correo';
+
+  @override
+  String get profileUidLabel => 'ID de usuario';
+
+  @override
+  String get goToDetailButton => 'Ir a detalle';
+
+  @override
+  String get goToProfileButton => 'Ir a perfil';
+
+  @override
   String homeWelcome(String email) {
     return 'Bienvenido a tu estación, $email';
   }

@@ -5,9 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'l10n/generated/app_localizations.dart';
 
 import 'core/di/service_locator.dart';
+import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/data/auth_service.dart';
-import 'features/auth/presentation/auth_gate.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -42,6 +42,7 @@ class _MainAppState extends State<MainApp> {
 
   Locale _currentLocale = const Locale('es');
   ThemeMode _themeMode = ThemeMode.dark;
+  late final AppRouter _appRouter;
 
   Future<SharedPreferences?> _getSharedPreferencesSafe() async {
     try {
@@ -56,7 +57,20 @@ class _MainAppState extends State<MainApp> {
   @override
   void initState() {
     super.initState();
+    _appRouter = AppRouter(
+      authService: serviceLocator<AuthService>(),
+      locale: () => _currentLocale,
+      themeMode: () => _themeMode,
+      onLocaleChanged: _setLocale,
+      onThemeModeChanged: _setThemeMode,
+    );
     _loadSavedPreferences();
+  }
+
+  @override
+  void dispose() {
+    _appRouter.dispose();
+    super.dispose();
   }
 
   Future<void> _loadSavedPreferences() async {
@@ -121,7 +135,7 @@ class _MainAppState extends State<MainApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       locale: _currentLocale,
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
@@ -130,13 +144,7 @@ class _MainAppState extends State<MainApp> {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: _themeMode,
-      home: AuthGate(
-        authService: serviceLocator<AuthService>(),
-        locale: _currentLocale,
-        themeMode: _themeMode,
-        onLocaleChanged: _setLocale,
-        onThemeModeChanged: _setThemeMode,
-      ),
+      routerConfig: _appRouter.router,
     );
   }
 }

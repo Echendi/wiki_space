@@ -135,6 +135,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signOutButton => 'Sign out';
 
   @override
+  String get loadingLabel => 'Loading...';
+
+  @override
+  String get registerTitle => 'Create your account';
+
+  @override
+  String get registerButton => 'Register';
+
+  @override
+  String get goToRegisterButton => 'Create account';
+
+  @override
+  String get registerSuccess => 'Account created successfully.';
+
+  @override
+  String get registerError => 'Could not complete registration.';
+
+  @override
+  String get confirmPasswordLabel => 'Confirm password';
+
+  @override
+  String get passwordMismatch => 'Passwords do not match.';
+
+  @override
+  String get detailTitle => 'Detail';
+
+  @override
+  String get articleIdLabel => 'Article ID';
+
+  @override
+  String get profileTitle => 'Profile';
+
+  @override
+  String get profileEmailLabel => 'Email';
+
+  @override
+  String get profileUidLabel => 'User ID';
+
+  @override
+  String get goToDetailButton => 'Go to detail';
+
+  @override
+  String get goToProfileButton => 'Go to profile';
+
+  @override
   String homeWelcome(String email) {
     return 'Welcome to your station, $email';
   }

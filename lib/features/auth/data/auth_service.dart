@@ -43,6 +43,26 @@ class AuthService {
     await _persistSession(user);
   }
 
+  Future<void> signUpWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    final credential = await _firebaseAuth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    final user = credential.user;
+    if (user == null) {
+      throw FirebaseAuthException(
+        code: 'user-not-found',
+        message: 'No se pudo crear un usuario valido.',
+      );
+    }
+
+    await _persistSession(user);
+  }
+
   Future<void> signOut() async {
     try {
       await _googleSignIn.signOut();

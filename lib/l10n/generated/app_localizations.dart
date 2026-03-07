@@ -326,6 +326,96 @@ abstract class AppLocalizations {
   /// **'Cerrar sesión'**
   String get signOutButton;
 
+  /// No description provided for @loadingLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Cargando...'**
+  String get loadingLabel;
+
+  /// No description provided for @registerTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Crea tu cuenta'**
+  String get registerTitle;
+
+  /// No description provided for @registerButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrarse'**
+  String get registerButton;
+
+  /// No description provided for @goToRegisterButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear cuenta'**
+  String get goToRegisterButton;
+
+  /// No description provided for @registerSuccess.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuenta creada correctamente.'**
+  String get registerSuccess;
+
+  /// No description provided for @registerError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo completar el registro.'**
+  String get registerError;
+
+  /// No description provided for @confirmPasswordLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Confirmar contraseña'**
+  String get confirmPasswordLabel;
+
+  /// No description provided for @passwordMismatch.
+  ///
+  /// In es, this message translates to:
+  /// **'Las contraseñas no coinciden.'**
+  String get passwordMismatch;
+
+  /// No description provided for @detailTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Detalle'**
+  String get detailTitle;
+
+  /// No description provided for @articleIdLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'ID del artículo'**
+  String get articleIdLabel;
+
+  /// No description provided for @profileTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Perfil'**
+  String get profileTitle;
+
+  /// No description provided for @profileEmailLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Correo'**
+  String get profileEmailLabel;
+
+  /// No description provided for @profileUidLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'ID de usuario'**
+  String get profileUidLabel;
+
+  /// No description provided for @goToDetailButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Ir a detalle'**
+  String get goToDetailButton;
+
+  /// No description provided for @goToProfileButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Ir a perfil'**
+  String get goToProfileButton;
+
   /// No description provided for @homeWelcome.
   ///
   /// In es, this message translates to:
