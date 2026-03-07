@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "781393003082",
+    "project_id": "echendi-wiki-space",
+    "storage_bucket": "echendi-wiki-space.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:781393003082:android:dbc8a2fe19f16b6ad6dcb3",
+        "android_client_info": {
+          "package_name": "com.example.wiki_space"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "781393003082-blkmk07fm4cu57ie0lv5m8fml1eif9os.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPapMcZmq2kx9lj1M73qTl-hYLGX_5KZo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "781393003082-blkmk07fm4cu57ie0lv5m8fml1eif9os.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "781393003082-88f7jjofpdjcs3s7t4egsip56gqr1j08.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.wikiSpace"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

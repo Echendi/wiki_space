@@ -1,0 +1,66 @@
+name: wiki_space
+description: Flutter project
+
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_bloc: ^9.1.1
+
+  # Networking
+  dio: ^5.9.2
+
+  # Local database — Drift
+  drift: ^2.23.1
+  drift_flutter: ^0.2.4          
+
+  # Dependency injection
+  get_it: ^9.2.1
+  injectable: ^2.7.1
+
+  # Firebase
+  firebase_core: ^4.5.0
+  firebase_auth: ^6.2.0
+
+  # Security
+  flutter_secure_storage: ^10.0.0
+
+  # Connectivity
+  connectivity_plus: ^7.0.0
+
+  # Images
+  cached_network_image: ^3.4.1
+
+  # App info
+  package_info_plus: ^9.0.0
+
+  # Localization
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+  # Code generation
+  build_runner: ^2.4.9
+  drift_dev: ^2.23.1             
+  injectable_generator: ^2.4.1
+
+  # Testing
+  bloc_test: ^10.0.0
+  mocktail: ^1.0.4
+
+flutter:
+  uses-material-design: true
