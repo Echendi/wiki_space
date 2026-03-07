@@ -50,6 +50,9 @@ dependencies:
   # App info
   package_info_plus: ^9.0.0
 
+  # Open external links
+  url_launcher: ^6.3.1
+
   # Local preferences
   shared_preferences: ^2.5.3
 

@@ -10,6 +10,10 @@ import '../cubit/home_cubit.dart';
 import '../cubit/home_state.dart';
 import 'home_feedback_views.dart';
 
+String detailHeroTag(String articleId) {
+  return 'detail-hero-${articleId.toLowerCase()}';
+}
+
 class HomeCarouselContent extends StatelessWidget {
   const HomeCarouselContent({
     super.key,
@@ -163,6 +167,7 @@ class _MainPreviewCard extends StatelessWidget {
               _ArticleImage(
                 imageUrl: imageUrl,
                 fallbackLabel: l10n.homeImageUnavailable,
+                heroTag: detailHeroTag(title),
               ),
               DecoratedBox(
                 decoration: BoxDecoration(
@@ -288,29 +293,39 @@ class _CarouselCard extends StatelessWidget {
 }
 
 class _ArticleImage extends StatelessWidget {
-  const _ArticleImage({required this.imageUrl, required this.fallbackLabel});
+  const _ArticleImage({
+    required this.imageUrl,
+    required this.fallbackLabel,
+    this.heroTag,
+  });
 
   final String imageUrl;
   final String fallbackLabel;
+  final String? heroTag;
   static const Map<String, String> _imageHeaders = <String, String>{
     'User-Agent': 'WikiSpaceApp/1.0 (Flutter)',
   };
 
   @override
   Widget build(BuildContext context) {
-    if (imageUrl.isEmpty) {
-      return _ImageFallback(label: fallbackLabel);
+    final child = imageUrl.isEmpty
+        ? _ImageFallback(label: fallbackLabel)
+        : CachedNetworkImage(
+            imageUrl: imageUrl,
+            httpHeaders: _imageHeaders,
+            fit: BoxFit.cover,
+            placeholder: (context, _) => const Center(
+              child: CircularProgressIndicator(strokeWidth: 2.2),
+            ),
+            errorWidget: (context, _, __) =>
+                _ImageFallback(label: fallbackLabel),
+          );
+
+    if (heroTag == null || heroTag!.isEmpty) {
+      return child;
     }
 
-    return CachedNetworkImage(
-      imageUrl: imageUrl,
-      httpHeaders: _imageHeaders,
-      fit: BoxFit.cover,
-      placeholder: (context, _) => const Center(
-        child: CircularProgressIndicator(strokeWidth: 2.2),
-      ),
-      errorWidget: (context, _, __) => _ImageFallback(label: fallbackLabel),
-    );
+    return Hero(tag: heroTag!, child: child);
   }
 }
 

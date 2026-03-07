@@ -1,5 +1,34 @@
 import 'package:get_it/get_it.dart';
 
+import '../data/datasources/article_detail_remote_data_source.dart';
+import '../data/repositories/article_detail_repository_impl.dart';
+import '../domain/repositories/article_detail_repository.dart';
+import '../domain/usecases/get_article_detail_use_case.dart';
+import '../presentation/cubit/detail_cubit.dart';
+
 void registerDetailDependencies(GetIt serviceLocator) {
-  // TODO: Registrar aqui datasources, repositories, usecases y cubits de Detail.
+  if (!serviceLocator.isRegistered<ArticleDetailRemoteDataSource>()) {
+    serviceLocator.registerLazySingleton<ArticleDetailRemoteDataSource>(
+      () => ArticleDetailRemoteDataSourceImpl(serviceLocator()),
+    );
+  }
+
+  if (!serviceLocator.isRegistered<ArticleDetailRepository>()) {
+    serviceLocator.registerLazySingleton<ArticleDetailRepository>(
+      () => ArticleDetailRepositoryImpl(serviceLocator()),
+    );
+  }
+
+  if (!serviceLocator.isRegistered<GetArticleDetailUseCase>()) {
+    serviceLocator.registerLazySingleton<GetArticleDetailUseCase>(
+      () => GetArticleDetailUseCase(serviceLocator()),
+    );
+  }
+
+  if (serviceLocator.isRegistered<DetailCubit>()) {
+    serviceLocator.unregister<DetailCubit>();
+  }
+
+  serviceLocator
+      .registerFactory<DetailCubit>(() => DetailCubit(serviceLocator()));
 }
