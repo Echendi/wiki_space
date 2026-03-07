@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/widgets/global_top_bar.dart';
-import '../../../l10n/generated/app_localizations.dart';
+import '../../../../core/widgets/global_top_bar.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class DetailScreen extends StatelessWidget {
   const DetailScreen({

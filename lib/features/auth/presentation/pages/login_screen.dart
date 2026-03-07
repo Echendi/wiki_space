@@ -5,13 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/router/app_routes.dart';
-import '../../../core/theme/app_palette.dart';
-import '../../../core/theme/app_text_styles.dart';
-import '../../../core/widgets/global_top_bar.dart';
-import '../../../l10n/generated/app_localizations.dart';
-import '../data/auth_service.dart';
-import 'widgets/space_logo.dart';
+import '../../../../core/router/app_routes.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/global_top_bar.dart';
+import '../../../../l10n/generated/app_localizations.dart';
+import '../../data/auth_service.dart';
+import '../widgets/widgets.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({

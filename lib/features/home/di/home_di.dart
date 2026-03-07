@@ -1,5 +1,33 @@
 import 'package:get_it/get_it.dart';
 
+import '../data/datasources/space_remote_data_source.dart';
+import '../data/repositories/space_repository_impl.dart';
+import '../domain/repositories/space_repository.dart';
+import '../domain/usecases/get_space_articles_use_case.dart';
+import '../presentation/cubit/home_cubit.dart';
+
 void registerHomeDependencies(GetIt serviceLocator) {
-  // TODO: Registrar aqui datasources, repositories, usecases y cubits de Home.
+  if (!serviceLocator.isRegistered<SpaceRemoteDataSource>()) {
+    serviceLocator.registerLazySingleton<SpaceRemoteDataSource>(
+      () => SpaceRemoteDataSourceImpl(serviceLocator()),
+    );
+  }
+
+  if (!serviceLocator.isRegistered<SpaceRepository>()) {
+    serviceLocator.registerLazySingleton<SpaceRepository>(
+      () => SpaceRepositoryImpl(serviceLocator()),
+    );
+  }
+
+  if (!serviceLocator.isRegistered<GetSpaceArticlesUseCase>()) {
+    serviceLocator.registerLazySingleton<GetSpaceArticlesUseCase>(
+      () => GetSpaceArticlesUseCase(serviceLocator()),
+    );
+  }
+
+  if (serviceLocator.isRegistered<HomeCubit>()) {
+    serviceLocator.unregister<HomeCubit>();
+  }
+
+  serviceLocator.registerFactory<HomeCubit>(() => HomeCubit(serviceLocator()));
 }

@@ -392,6 +392,18 @@ abstract class AppLocalizations {
   /// **'Perfil'**
   String get profileTitle;
 
+  /// No description provided for @navHome.
+  ///
+  /// In es, this message translates to:
+  /// **'Inicio'**
+  String get navHome;
+
+  /// No description provided for @navProfile.
+  ///
+  /// In es, this message translates to:
+  /// **'Perfil'**
+  String get navProfile;
+
   /// No description provided for @profileEmailLabel.
   ///
   /// In es, this message translates to:
@@ -475,6 +487,60 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Flujo conectado a FirebaseAuth para autenticación real.'**
   String get cardStatusBody;
+
+  /// No description provided for @homeSpaceFeedTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Explora el Espacio'**
+  String get homeSpaceFeedTitle;
+
+  /// No description provided for @homeSpaceFeedSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Descubre artículos y recursos visuales obtenidos con MediaWiki Action API.'**
+  String get homeSpaceFeedSubtitle;
+
+  /// No description provided for @homeLoading.
+  ///
+  /// In es, this message translates to:
+  /// **'Cargando recursos del espacio...'**
+  String get homeLoading;
+
+  /// No description provided for @homeLoadError.
+  ///
+  /// In es, this message translates to:
+  /// **'No fue posible cargar los recursos del espacio.'**
+  String get homeLoadError;
+
+  /// No description provided for @homeEmptyResults.
+  ///
+  /// In es, this message translates to:
+  /// **'No se encontraron resultados visuales para la categoría Espacio.'**
+  String get homeEmptyResults;
+
+  /// No description provided for @homeRetry.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get homeRetry;
+
+  /// No description provided for @homeImageUnavailable.
+  ///
+  /// In es, this message translates to:
+  /// **'Imagen no disponible'**
+  String get homeImageUnavailable;
+
+  /// No description provided for @homeSummaryFallback.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin resumen disponible para este artículo.'**
+  String get homeSummaryFallback;
+
+  /// No description provided for @homeSlideCounter.
+  ///
+  /// In es, this message translates to:
+  /// **'{current} de {total}'**
+  String homeSlideCounter(int current, int total);
 }
 
 class _AppLocalizationsDelegate

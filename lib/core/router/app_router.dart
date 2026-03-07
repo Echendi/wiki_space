@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/widgets/space_bottom_nav_bar.dart';
 import '../../features/auth/data/auth_service.dart';
-import '../../features/auth/presentation/login_screen.dart';
-import '../../features/auth/presentation/register_screen.dart';
-import '../../features/auth/presentation/splash_screen.dart';
-import '../../features/detail/presentation/detail_screen.dart';
-import '../../features/home/presentation/home_screen.dart';
-import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/auth/presentation/pages.dart';
+import '../../features/detail/presentation/pages.dart';
+import '../../features/home/presentation/pages/pages.dart';
+import '../../features/profile/presentation/pages.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'app_routes.dart';
 
 class AppRouter {
@@ -73,34 +73,76 @@ class AppRouter {
             onThemeModeChanged: onThemeModeChanged,
           ),
         ),
-        GoRoute(
-          path: AppRoutes.home,
-          builder: (context, state) => HomeScreen(
-            authService: authService,
-            locale: locale(),
-            themeMode: themeMode(),
-            onLocaleChanged: onLocaleChanged,
-            onThemeModeChanged: onThemeModeChanged,
+        StatefulShellRoute(
+          builder: (context, state, navigationShell) => _MainShellScaffold(
+            navigationShell: navigationShell,
           ),
+          navigatorContainerBuilder: (context, navigationShell, children) {
+            return _AnimatedBranchContainer(
+              navigationShell: navigationShell,
+              children: children,
+            );
+          },
+          branches: [
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.home,
+                  builder: (context, state) => HomeScreen(
+                    authService: authService,
+                    locale: locale(),
+                    themeMode: themeMode(),
+                    onLocaleChanged: onLocaleChanged,
+                    onThemeModeChanged: onThemeModeChanged,
+                  ),
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.profail,
+                  builder: (context, state) => ProfileScreen(
+                    authService: authService,
+                    locale: locale(),
+                    themeMode: themeMode(),
+                    onLocaleChanged: onLocaleChanged,
+                    onThemeModeChanged: onThemeModeChanged,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
         GoRoute(
           path: AppRoutes.detail,
-          builder: (context, state) => DetailScreen(
-            articleId: state.uri.queryParameters['id'] ?? 'unknown',
-            locale: locale(),
-            themeMode: themeMode(),
-            onLocaleChanged: onLocaleChanged,
-            onThemeModeChanged: onThemeModeChanged,
-          ),
-        ),
-        GoRoute(
-          path: AppRoutes.profail,
-          builder: (context, state) => ProfileScreen(
-            authService: authService,
-            locale: locale(),
-            themeMode: themeMode(),
-            onLocaleChanged: onLocaleChanged,
-            onThemeModeChanged: onThemeModeChanged,
+          pageBuilder: (context, state) => CustomTransitionPage<void>(
+            key: state.pageKey,
+            child: DetailScreen(
+              articleId: state.uri.queryParameters['id'] ?? 'unknown',
+              locale: locale(),
+              themeMode: themeMode(),
+              onLocaleChanged: onLocaleChanged,
+              onThemeModeChanged: onThemeModeChanged,
+            ),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              final curved = CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              );
+
+              return FadeTransition(
+                opacity: curved,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 0.08),
+                    end: Offset.zero,
+                  ).animate(curved),
+                  child: child,
+                ),
+              );
+            },
           ),
         ),
       ],
@@ -132,5 +174,74 @@ class _AuthRefreshListenable extends ChangeNotifier {
   void dispose() {
     _subscription.cancel();
     super.dispose();
+  }
+}
+
+class _MainShellScaffold extends StatelessWidget {
+  const _MainShellScaffold({required this.navigationShell});
+
+  final StatefulNavigationShell navigationShell;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return Scaffold(
+      extendBody: true,
+      body: navigationShell,
+      bottomNavigationBar: SpaceBottomNavBar(
+        currentIndex: navigationShell.currentIndex,
+        onTap: (index) {
+          navigationShell.goBranch(
+            index,
+            initialLocation: index == navigationShell.currentIndex,
+          );
+        },
+        homeLabel: l10n.navHome,
+        profileLabel: l10n.navProfile,
+      ),
+    );
+  }
+}
+
+class _AnimatedBranchContainer extends StatelessWidget {
+  const _AnimatedBranchContainer({
+    required this.navigationShell,
+    required this.children,
+  });
+
+  final StatefulNavigationShell navigationShell;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final activeChild = KeyedSubtree(
+      key: ValueKey<int>(navigationShell.currentIndex),
+      child: children[navigationShell.currentIndex],
+    );
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 280),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
+
+        return FadeTransition(
+          opacity: curved,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.03, 0),
+              end: Offset.zero,
+            ).animate(curved),
+            child: child,
+          ),
+        );
+      },
+      child: activeChild,
+    );
   }
 }

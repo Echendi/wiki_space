@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_palette.dart';
-import '../../../core/widgets/global_top_bar.dart';
-import '../../../l10n/generated/app_localizations.dart';
-import '../data/auth_service.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/widgets/global_top_bar.dart';
+import '../../../../l10n/generated/app_localizations.dart';
+import '../../data/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({

@@ -171,6 +171,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get profileTitle => 'Perfil';
 
   @override
+  String get navHome => 'Inicio';
+
+  @override
+  String get navProfile => 'Perfil';
+
+  @override
   String get profileEmailLabel => 'Correo';
 
   @override
@@ -217,4 +223,36 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get cardStatusBody =>
       'Flujo conectado a FirebaseAuth para autenticación real.';
+
+  @override
+  String get homeSpaceFeedTitle => 'Explora el Espacio';
+
+  @override
+  String get homeSpaceFeedSubtitle =>
+      'Descubre artículos y recursos visuales obtenidos con MediaWiki Action API.';
+
+  @override
+  String get homeLoading => 'Cargando recursos del espacio...';
+
+  @override
+  String get homeLoadError => 'No fue posible cargar los recursos del espacio.';
+
+  @override
+  String get homeEmptyResults =>
+      'No se encontraron resultados visuales para la categoría Espacio.';
+
+  @override
+  String get homeRetry => 'Reintentar';
+
+  @override
+  String get homeImageUnavailable => 'Imagen no disponible';
+
+  @override
+  String get homeSummaryFallback =>
+      'Sin resumen disponible para este artículo.';
+
+  @override
+  String homeSlideCounter(int current, int total) {
+    return '$current de $total';
+  }
 }

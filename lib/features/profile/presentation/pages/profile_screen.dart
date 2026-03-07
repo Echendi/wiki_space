@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/widgets/global_top_bar.dart';
-import '../../../l10n/generated/app_localizations.dart';
-import '../../auth/data/auth_service.dart';
+import '../../../../core/widgets/global_top_bar.dart';
+import '../../../../l10n/generated/app_localizations.dart';
+import '../../../auth/data/auth_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({

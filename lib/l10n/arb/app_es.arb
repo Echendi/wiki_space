@@ -49,6 +49,8 @@
   "detailTitle": "Detalle",
   "articleIdLabel": "ID del artículo",
   "profileTitle": "Perfil",
+  "navHome": "Inicio",
+  "navProfile": "Perfil",
   "profileEmailLabel": "Correo",
   "profileUidLabel": "ID de usuario",
   "goToDetailButton": "Ir a detalle",
@@ -69,5 +71,24 @@
   "cardSessionTitle": "Sesión",
   "cardSessionBody": "Persistencia de usuario entre reinicios de la app.",
   "cardStatusTitle": "Estado",
-  "cardStatusBody": "Flujo conectado a FirebaseAuth para autenticación real."
+  "cardStatusBody": "Flujo conectado a FirebaseAuth para autenticación real.",
+  "homeSpaceFeedTitle": "Explora el Espacio",
+  "homeSpaceFeedSubtitle": "Descubre artículos y recursos visuales obtenidos con MediaWiki Action API.",
+  "homeLoading": "Cargando recursos del espacio...",
+  "homeLoadError": "No fue posible cargar los recursos del espacio.",
+  "homeEmptyResults": "No se encontraron resultados visuales para la categoría Espacio.",
+  "homeRetry": "Reintentar",
+  "homeImageUnavailable": "Imagen no disponible",
+  "homeSummaryFallback": "Sin resumen disponible para este artículo.",
+  "homeSlideCounter": "{current} de {total}",
+  "@homeSlideCounter": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  }
 }
