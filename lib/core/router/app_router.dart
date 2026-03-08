@@ -1,22 +1,26 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/widgets/space_bottom_nav_bar.dart';
 import '../../features/auth/domain/usecases/auth_use_cases.dart';
 import '../../features/auth/presentation/pages.dart';
 import '../../features/detail/presentation/pages.dart';
 import '../../features/home/presentation/pages/pages.dart';
 import '../../features/profile/presentation/pages.dart';
-import '../../l10n/generated/app_localizations.dart';
+import 'listenables/auth_refresh_listenable.dart';
+import 'transitions/animated_branch_container.dart';
 import 'app_routes.dart';
+import 'shell/main_shell_scaffold.dart';
 
+/// Configura la navegacion principal de la app.
+///
+/// Responsabilidades:
+/// - Definir rutas y transiciones.
+/// - Aplicar redirecciones segun estado de autenticacion.
+/// - Mantener sincronizado GoRouter cuando cambia la sesion.
 class AppRouter {
   AppRouter({
     required this.authUseCases,
-  }) : _authRefresh = _AuthRefreshListenable(authUseCases.watchAuthState()) {
+  }) : _authRefresh = AuthRefreshListenable(authUseCases.watchAuthState()) {
     router = GoRouter(
       initialLocation: AppRoutes.splash,
       refreshListenable: _authRefresh,
@@ -55,11 +59,11 @@ class AppRouter {
           builder: (context, state) => const RegisterScreen(),
         ),
         StatefulShellRoute(
-          builder: (context, state, navigationShell) => _MainShellScaffold(
+          builder: (context, state, navigationShell) => MainShellScaffold(
             navigationShell: navigationShell,
           ),
           navigatorContainerBuilder: (context, navigationShell, children) {
-            return _AnimatedBranchContainer(
+            return AnimatedBranchContainer(
               navigationShell: navigationShell,
               children: children,
             );
@@ -115,135 +119,13 @@ class AppRouter {
   }
 
   final AuthUseCases authUseCases;
-  final _AuthRefreshListenable _authRefresh;
+  final AuthRefreshListenable _authRefresh;
 
+  /// Instancia de router utilizada por `MaterialApp.router`.
   late final GoRouter router;
 
+  /// Libera los recursos internos asociados al refresco por auth.
   void dispose() {
     _authRefresh.dispose();
-  }
-}
-
-class _AuthRefreshListenable extends ChangeNotifier {
-  _AuthRefreshListenable(Stream<dynamic> stream) {
-    _subscription = stream.asBroadcastStream().listen((_) => notifyListeners());
-  }
-
-  late final StreamSubscription<dynamic> _subscription;
-
-  @override
-  void dispose() {
-    _subscription.cancel();
-    super.dispose();
-  }
-}
-
-class _MainShellScaffold extends StatefulWidget {
-  const _MainShellScaffold({required this.navigationShell});
-
-  final StatefulNavigationShell navigationShell;
-
-  @override
-  State<_MainShellScaffold> createState() => _MainShellScaffoldState();
-}
-
-class _MainShellScaffoldState extends State<_MainShellScaffold> {
-  static const Duration _exitGap = Duration(seconds: 2);
-  DateTime? _lastBackPressedAt;
-
-  void _handleBackPressed(BuildContext context) {
-    final now = DateTime.now();
-    final canExit = _lastBackPressedAt != null &&
-        now.difference(_lastBackPressedAt!) <= _exitGap;
-
-    if (canExit) {
-      SystemNavigator.pop();
-      return;
-    }
-
-    _lastBackPressedAt = now;
-
-    final message = AppLocalizations.of(context).backPressExitHint;
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: _exitGap,
-        ),
-      );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
-    return PopScope<void>(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          return;
-        }
-        _handleBackPressed(context);
-      },
-      child: Scaffold(
-        extendBody: true,
-        body: widget.navigationShell,
-        bottomNavigationBar: SpaceBottomNavBar(
-          currentIndex: widget.navigationShell.currentIndex,
-          onTap: (index) {
-            widget.navigationShell.goBranch(
-              index,
-              initialLocation: index == widget.navigationShell.currentIndex,
-            );
-          },
-          homeLabel: l10n.navHome,
-          profileLabel: l10n.navProfile,
-        ),
-      ),
-    );
-  }
-}
-
-class _AnimatedBranchContainer extends StatelessWidget {
-  const _AnimatedBranchContainer({
-    required this.navigationShell,
-    required this.children,
-  });
-
-  final StatefulNavigationShell navigationShell;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    final activeChild = KeyedSubtree(
-      key: ValueKey<int>(navigationShell.currentIndex),
-      child: children[navigationShell.currentIndex],
-    );
-
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 280),
-      switchInCurve: Curves.easeOutCubic,
-      switchOutCurve: Curves.easeInCubic,
-      transitionBuilder: (child, animation) {
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        );
-
-        return FadeTransition(
-          opacity: curved,
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0.03, 0),
-              end: Offset.zero,
-            ).animate(curved),
-            child: child,
-          ),
-        );
-      },
-      child: activeChild,
-    );
   }
 }
