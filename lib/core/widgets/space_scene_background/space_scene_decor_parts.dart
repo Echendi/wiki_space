@@ -1,43 +1,6 @@
-import 'package:flutter/material.dart';
+part of 'space_scene_background.dart';
 
-import '../theme/app_palette.dart';
-
-class SpaceSceneBackground extends StatelessWidget {
-  const SpaceSceneBackground({
-    super.key,
-    required this.isDark,
-    required this.child,
-  });
-
-  final bool isDark;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final gradientColors =
-        isDark ? AppPalette.homeDarkGradient : AppPalette.homeLightGradient;
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: gradientColors,
-        ),
-      ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          IgnorePointer(
-            child: _SpaceDecorLayer(isDark: isDark),
-          ),
-          child,
-        ],
-      ),
-    );
-  }
-}
-
+/// Capa decorativa del fondo espacial (glows, planetas y estrellas).
 class _SpaceDecorLayer extends StatelessWidget {
   const _SpaceDecorLayer({required this.isDark});
 
@@ -109,6 +72,7 @@ class _SpaceDecorLayer extends StatelessWidget {
   }
 }
 
+/// Mancha radial difusa para dar profundidad al fondo.
 class _GlowBlob extends StatelessWidget {
   const _GlowBlob({
     this.left,
@@ -151,6 +115,7 @@ class _GlowBlob extends StatelessWidget {
   }
 }
 
+/// Planeta decorativo con gradiente y anillo opcional.
 class _Planet extends StatelessWidget {
   const _Planet({
     this.left,
@@ -220,6 +185,7 @@ class _Planet extends StatelessWidget {
   }
 }
 
+/// Campo de estrellas con posiciones normalizadas predefinidas.
 class _StarField extends StatelessWidget {
   const _StarField({required this.isDark});
 
@@ -296,6 +262,7 @@ class _StarField extends StatelessWidget {
   }
 }
 
+/// Especificacion normalizada de una estrella dentro del viewport.
 class _StarSpec {
   const _StarSpec(this.dx, this.dy, this.size);
 

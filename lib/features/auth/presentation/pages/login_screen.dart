@@ -8,7 +8,7 @@ import '../../../../core/di/service_locator.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/global_top_bar.dart';
+import '../../../../core/widgets/global_top_bar/global_top_bar.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';

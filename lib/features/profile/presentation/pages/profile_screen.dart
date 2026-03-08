@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../core/theme/app_palette.dart';
-import '../../../../core/widgets/global_top_bar.dart';
-import '../../../../core/widgets/space_scene_background.dart';
+import '../../../../core/widgets/global_top_bar/global_top_bar.dart';
+import '../../../../core/widgets/space_scene_background/space_scene_background.dart';
 import '../../../../core/settings/cubit/app_settings_cubit.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/cubit/auth_session_cubit.dart';

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../l10n/generated/app_localizations.dart';
-import '../../widgets/space_bottom_nav_bar.dart';
+import '../../widgets/space_bottom_nav_bar/space_bottom_nav_bar.dart';
 
 /// Scaffold principal para rutas dentro del `StatefulShellRoute`.
 ///

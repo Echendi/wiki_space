@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/router/app_routes.dart';
-import '../../../../core/widgets/global_top_bar.dart';
-import '../../../../core/widgets/space_scene_background.dart';
+import '../../../../core/widgets/global_top_bar/global_top_bar.dart';
+import '../../../../core/widgets/space_scene_background/space_scene_background.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../cubit/home_cubit.dart';
 import '../cubit/home_state.dart';

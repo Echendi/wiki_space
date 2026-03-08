@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/widgets/global_top_bar.dart';
+import '../../../core/widgets/global_top_bar/global_top_bar.dart';
 import '../../home/presentation/pages/pages.dart';
 import '../domain/entities/app_user.dart';
 import '../domain/usecases/auth_use_cases.dart';

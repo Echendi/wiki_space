@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../di/service_locator.dart';
-import '../settings/cubit/app_settings_cubit.dart';
-import '../services/connectivity_status_service.dart';
-import '../../features/auth/presentation/widgets/space_logo.dart';
-import '../../l10n/generated/app_localizations.dart';
+import '../../di/service_locator.dart';
+import '../../settings/cubit/app_settings_cubit.dart';
+import '../../services/connectivity_status_service.dart';
+import '../../../features/auth/presentation/widgets/space_logo.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
+part 'selection_tile.dart';
+
+/// AppBar global reutilizable de la aplicacion.
+///
+/// Responsabilidades:
+/// - Mostrar branding (logo + titulo).
+/// - Exponer controles globales de tema e idioma.
+/// - Mostrar estado offline en tiempo real.
 class GlobalTopBar extends StatelessWidget implements PreferredSizeWidget {
   const GlobalTopBar({
     super.key,
@@ -198,31 +206,5 @@ class GlobalTopBar extends StatelessWidget implements PreferredSizeWidget {
 
   String _languageTooltip(AppLocalizations l10n, String languageCode) {
     return languageCode == 'es' ? l10n.spanishOption : l10n.englishOption;
-  }
-}
-
-class _SelectionTile extends StatelessWidget {
-  const _SelectionTile({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onTap,
-      title: Text(label),
-      trailing: Icon(
-        selected ? Icons.check_circle_rounded : Icons.circle_outlined,
-        color: selected
-            ? Theme.of(context).colorScheme.primary
-            : Theme.of(context).colorScheme.outline,
-      ),
-    );
   }
 }
