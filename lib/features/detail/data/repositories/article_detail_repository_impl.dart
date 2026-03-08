@@ -6,6 +6,7 @@ import '../../domain/repositories/article_detail_repository.dart';
 import '../datasources/article_detail_local_data_source.dart';
 import '../datasources/article_detail_remote_data_source.dart';
 
+/// Repositorio de detalle con estrategia online-first y fallback local.
 class ArticleDetailRepositoryImpl implements ArticleDetailRepository {
   const ArticleDetailRepositoryImpl(
     this._remoteDataSource,
@@ -17,6 +18,7 @@ class ArticleDetailRepositoryImpl implements ArticleDetailRepository {
   final ArticleDetailLocalDataSource _localDataSource;
   final NetworkStatus _networkStatus;
 
+  /// Obtiene detalle remoto cuando hay internet; si falla usa cache local.
   @override
   Future<SpaceArticleDetail> getArticleDetail(
     String articleId,

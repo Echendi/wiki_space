@@ -4,9 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wiki_space/core/network/network_status.dart';
 
 import '../../domain/usecases/get_article_detail_use_case.dart';
+import 'detail_status.dart';
 import 'detail_state.dart';
 
+/// Orquesta carga de detalle con soporte offline y reintento automatico.
 class DetailCubit extends Cubit<DetailState> {
+  /// Inicializa listeners de conectividad para recuperar desde modo offline.
   DetailCubit(this._getArticleDetailUseCase, this._networkStatus)
       : super(const DetailState()) {
     _connectivitySubscription = _networkStatus.onStatusChanged.listen(
@@ -22,6 +25,7 @@ class DetailCubit extends Cubit<DetailState> {
   String? _lastLanguageCode;
   bool _wasOffline = false;
 
+  /// Carga detalle remoto/cache para articulo e idioma.
   Future<void> load(String articleId, String languageCode) async {
     _lastArticleId = articleId;
     _lastLanguageCode = languageCode;
@@ -53,6 +57,7 @@ class DetailCubit extends Cubit<DetailState> {
     }
   }
 
+  /// Reintenta carga cuando vuelve internet tras error offline sin cache.
   Future<void> _onConnectivityChanged(bool hasInternet) async {
     if (!hasInternet || !_wasOffline) {
       return;
@@ -67,6 +72,7 @@ class DetailCubit extends Cubit<DetailState> {
     await load(articleId, languageCode);
   }
 
+  /// Libera suscripcion de conectividad del cubit.
   @override
   Future<void> close() async {
     await _connectivitySubscription.cancel();

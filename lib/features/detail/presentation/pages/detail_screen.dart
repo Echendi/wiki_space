@@ -1,21 +1,20 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/global_top_bar/global_top_bar.dart';
 import '../../../../core/widgets/space_scene_background/space_scene_background.dart';
-import '../../../../features/auth/presentation/widgets/space_logo.dart';
 import '../../../../features/home/presentation/widgets/home_carousel_content.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../cubit/detail_cubit.dart';
+import '../cubit/detail_status.dart';
 import '../cubit/detail_state.dart';
+import '../utils/detail_formatters.dart';
+import '../widgets/widgets.dart';
 
+/// Pantalla de detalle de articulo espacial.
 class DetailScreen extends StatefulWidget {
   const DetailScreen({
     super.key,
@@ -33,6 +32,7 @@ class _DetailScreenState extends State<DetailScreen> {
   late String _articleLanguageCode;
   String? _loadedArticleId;
 
+  /// Crea cubit y define idioma por defecto mientras llegan dependencias de UI.
   @override
   void initState() {
     super.initState();
@@ -40,6 +40,7 @@ class _DetailScreenState extends State<DetailScreen> {
     _articleLanguageCode = 'es';
   }
 
+  /// Captura locale actual y dispara carga inicial de detalle si aplica.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -47,16 +48,17 @@ class _DetailScreenState extends State<DetailScreen> {
     _loadIfNeeded();
   }
 
+  /// Recarga detalle cuando cambia el id objetivo de la pantalla.
   @override
   void didUpdateWidget(covariant DetailScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.articleId != widget.articleId) {
-      // New detail target: pin language at navigation moment.
       _articleLanguageCode = Localizations.localeOf(context).languageCode;
       _loadIfNeeded(force: true);
     }
   }
 
+  /// Evita cargas duplicadas del mismo articulo/lenguaje.
   void _loadIfNeeded({bool force = false}) {
     if (!force && _loadedArticleId == widget.articleId) {
       return;
@@ -66,12 +68,14 @@ class _DetailScreenState extends State<DetailScreen> {
     _detailCubit.load(widget.articleId, _articleLanguageCode);
   }
 
+  /// Libera cubit local de la pantalla.
   @override
   void dispose() {
     _detailCubit.close();
     super.dispose();
   }
 
+  /// Construye estados de loading/error/success del detalle.
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -157,7 +161,10 @@ class _DetailScreenState extends State<DetailScreen> {
                 final metricArticleIdLabel = l10n.articleIdLabel;
 
                 final metricLastUpdatedValue =
-                    _formatLastUpdated(detail.lastUpdatedAt, languageCode);
+                    DetailFormatters.formatLastUpdated(
+                  detail.lastUpdatedAt,
+                  languageCode,
+                );
                 final metricLanguageValue = detail.languageCode.toUpperCase();
                 final metricLinkValue =
                     detail.pageUrl.isEmpty ? '--' : detail.pageUrl;
@@ -173,7 +180,7 @@ class _DetailScreenState extends State<DetailScreen> {
                         SliverToBoxAdapter(
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                            child: _DetailVisualHero(
+                            child: DetailVisualHero(
                               title: title,
                               imageUrl: detail.imageUrl,
                               fallbackLabel: l10n.homeImageUnavailable,
@@ -199,25 +206,25 @@ class _DetailScreenState extends State<DetailScreen> {
                               spacing: 10,
                               runSpacing: 10,
                               children: [
-                                _MetricCard(
+                                DetailMetricCard(
                                   label: metricLastUpdatedLabel,
                                   value: metricLastUpdatedValue,
                                   icon: Icons.schedule_rounded,
                                   isDark: isDark,
                                 ),
-                                _MetricCard(
+                                DetailMetricCard(
                                   label: metricLanguageLabel,
                                   value: metricLanguageValue,
                                   icon: Icons.language_rounded,
                                   isDark: isDark,
                                 ),
-                                _MetricCard(
+                                DetailMetricCard(
                                   label: metricArticleIdLabel,
                                   value: metricArticleIdValue,
                                   icon: Icons.fingerprint_rounded,
                                   isDark: isDark,
                                 ),
-                                _LinkMetricCard(
+                                DetailLinkMetricCard(
                                   label: metricLinkLabel,
                                   value: metricLinkValue,
                                   isDark: isDark,
@@ -229,7 +236,7 @@ class _DetailScreenState extends State<DetailScreen> {
                         SliverToBoxAdapter(
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                            child: _DetailSummaryCard(
+                            child: DetailSummaryCard(
                               summary: summary,
                               isDark: isDark,
                             ),
@@ -241,315 +248,6 @@ class _DetailScreenState extends State<DetailScreen> {
                 );
             }
           },
-        ),
-      ),
-    );
-  }
-}
-
-String _formatLastUpdated(DateTime? value, String languageCode) {
-  if (value == null) {
-    return '--';
-  }
-
-  final locale = languageCode == 'es' ? 'es' : 'en';
-  return DateFormat('dd/MM/yyyy HH:mm', locale).format(value);
-}
-
-class _DetailVisualHero extends StatelessWidget {
-  const _DetailVisualHero({
-    required this.title,
-    required this.imageUrl,
-    required this.fallbackLabel,
-    required this.heroTag,
-    required this.isDark,
-  });
-
-  final String title;
-  final String imageUrl;
-  final String fallbackLabel;
-  final String heroTag;
-  final bool isDark;
-
-  static const Map<String, String> _imageHeaders = <String, String>{
-    'User-Agent': 'WikiSpaceApp/1.0 (Flutter)',
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 290,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Hero(
-              tag: heroTag,
-              child: imageUrl.isEmpty
-                  ? _DetailImageFallback(
-                      isDark: isDark,
-                      label: fallbackLabel,
-                    )
-                  : CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      httpHeaders: _imageHeaders,
-                      placeholder: (context, _) => const Center(
-                        child: CircularProgressIndicator(strokeWidth: 2.2),
-                      ),
-                      errorWidget: (context, _, __) => _DetailImageFallback(
-                        isDark: isDark,
-                        label: fallbackLabel,
-                      ),
-                    ),
-            ),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withValues(alpha: 0.72),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              left: 14,
-              right: 14,
-              bottom: 12,
-              child: Text(
-                title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.screenTitle(true).copyWith(fontSize: 23),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _DetailImageFallback extends StatelessWidget {
-  const _DetailImageFallback({required this.isDark, required this.label});
-
-  final bool isDark;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: isDark ? AppPalette.surfaceDarkAlt : AppPalette.surfaceLightAlt,
-      alignment: Alignment.center,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SpaceLogo(size: 64, showWordmark: false),
-          const SizedBox(height: 8),
-          Text(label, style: AppTextStyles.caption(isDark)),
-        ],
-      ),
-    );
-  }
-}
-
-class _DetailSummaryCard extends StatelessWidget {
-  const _DetailSummaryCard({required this.summary, required this.isDark});
-
-  final String summary;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: (isDark ? AppPalette.surfaceDarkAlt : AppPalette.surfaceLight)
-            .withValues(alpha: isDark ? 0.82 : 0.94),
-        border: Border.all(
-          color: AppPalette.accent.withValues(alpha: 0.24),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-        child: Text(summary, style: AppTextStyles.bodyMd(isDark)),
-      ),
-    );
-  }
-}
-
-class _MetricCard extends StatelessWidget {
-  const _MetricCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.isDark,
-  });
-
-  final String label;
-  final String value;
-  final IconData icon;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    final width = (MediaQuery.sizeOf(context).width - 52) / 2;
-
-    return SizedBox(
-      width: width,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          color: (isDark ? AppPalette.surfaceDark : AppPalette.surfaceLight)
-              .withValues(alpha: isDark ? 0.82 : 0.94),
-          border: Border.all(
-            color: AppPalette.accent.withValues(alpha: 0.22),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(icon, size: 16, color: AppPalette.star),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.caption(isDark),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bodyMd(isDark).copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? AppPalette.onDark : AppPalette.onPrimary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LinkMetricCard extends StatelessWidget {
-  const _LinkMetricCard({
-    required this.label,
-    required this.value,
-    required this.isDark,
-  });
-
-  final String label;
-  final String value;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    final width = (MediaQuery.sizeOf(context).width - 52) / 2;
-
-    return SizedBox(
-      width: width,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          color: (isDark ? AppPalette.surfaceDark : AppPalette.surfaceLight)
-              .withValues(alpha: isDark ? 0.82 : 0.94),
-          border: Border.all(
-            color: AppPalette.accent.withValues(alpha: 0.22),
-          ),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: value == '--'
-              ? null
-              : () async {
-                  var launched = false;
-
-                  try {
-                    final uri = Uri.tryParse(value);
-                    if (uri != null) {
-                      final canOpen = await canLaunchUrl(uri);
-                      if (canOpen) {
-                        launched = await launchUrl(
-                          uri,
-                          mode: LaunchMode.externalApplication,
-                        );
-                      }
-                    }
-                  } catch (_) {
-                    launched = false;
-                  }
-
-                  if (!launched) {
-                    await Clipboard.setData(ClipboardData(text: value));
-                  }
-
-                  if (!context.mounted) {
-                    return;
-                  }
-                  final languageCode =
-                      Localizations.localeOf(context).languageCode;
-                  final message = launched
-                      ? (languageCode == 'es'
-                          ? 'Abriendo articulo en el navegador'
-                          : 'Opening article in browser')
-                      : (languageCode == 'es'
-                          ? 'No se pudo abrir. Enlace copiado'
-                          : 'Could not open. Link copied');
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(SnackBar(content: Text(message)));
-                },
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.link_rounded, size: 16, color: AppPalette.star),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.caption(isDark),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  value,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bodyMd(isDark).copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? AppPalette.star : AppPalette.secondary,
-                    decoration: value == '--'
-                        ? TextDecoration.none
-                        : TextDecoration.underline,
-                  ),
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );

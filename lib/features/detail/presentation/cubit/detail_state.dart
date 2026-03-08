@@ -1,7 +1,7 @@
 import '../../domain/entities/space_article_detail.dart';
+import 'detail_status.dart';
 
-enum DetailStatus { initial, loading, success, failure }
-
+/// Estado inmutable consumido por `DetailScreen`.
 class DetailState {
   const DetailState({
     this.status = DetailStatus.initial,
@@ -13,6 +13,7 @@ class DetailState {
   final SpaceArticleDetail? detail;
   final String? errorMessage;
 
+  /// Crea una nueva instancia de estado con cambios parciales.
   DetailState copyWith({
     DetailStatus? status,
     SpaceArticleDetail? detail,

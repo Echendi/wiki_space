@@ -2,12 +2,15 @@ import 'package:get_it/get_it.dart';
 import 'package:wiki_space/core/network/network_status.dart';
 
 import '../data/datasources/article_detail_local_data_source.dart';
+import '../data/datasources/article_detail_local_data_source_impl.dart';
 import '../data/datasources/article_detail_remote_data_source.dart';
+import '../data/datasources/article_detail_remote_data_source_impl.dart';
 import '../data/repositories/article_detail_repository_impl.dart';
 import '../domain/repositories/article_detail_repository.dart';
 import '../domain/usecases/get_article_detail_use_case.dart';
 import '../presentation/cubit/detail_cubit.dart';
 
+/// Registra dependencias de la feature de detalle.
 void registerDetailDependencies(GetIt serviceLocator) {
   if (!serviceLocator.isRegistered<ArticleDetailRemoteDataSource>()) {
     serviceLocator.registerLazySingleton<ArticleDetailRemoteDataSource>(

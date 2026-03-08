@@ -1,3 +1,4 @@
+/// Entidad de dominio para el detalle de un articulo espacial.
 class SpaceArticleDetail {
   const SpaceArticleDetail({
     required this.articleId,

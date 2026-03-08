@@ -1,5 +1,6 @@
 import '../../domain/entities/space_article_detail.dart';
 
+/// Modelo de datos para detalle de articulo proveniente de APIs/cache.
 class SpaceArticleDetailModel extends SpaceArticleDetail {
   const SpaceArticleDetailModel({
     required super.articleId,
@@ -11,6 +12,7 @@ class SpaceArticleDetailModel extends SpaceArticleDetail {
     required super.lastUpdatedAt,
   });
 
+  /// Construye modelo desde payload de Wikipedia.
   factory SpaceArticleDetailModel.fromJson(
     Map<String, dynamic> json,
     String languageCode,
@@ -28,6 +30,7 @@ class SpaceArticleDetailModel extends SpaceArticleDetail {
     );
   }
 
+  /// Intenta parsear fecha ISO y convertirla a hora local.
   static DateTime? _parseDate(String? rawValue) {
     if (rawValue == null || rawValue.isEmpty) {
       return null;
@@ -35,6 +38,7 @@ class SpaceArticleDetailModel extends SpaceArticleDetail {
     return DateTime.tryParse(rawValue)?.toLocal();
   }
 
+  /// Normaliza URLs para usar esquema https y validar estructura.
   static String _normalizeUrl(String rawUrl) {
     if (rawUrl.isEmpty) {
       return '';
