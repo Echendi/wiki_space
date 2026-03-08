@@ -1,10 +1,12 @@
 import '../repositories/auth_repository.dart';
 
+/// Ejecuta inicio de sesion tradicional con correo y contrasena.
 class SignInWithEmailAndPasswordUseCase {
   const SignInWithEmailAndPasswordUseCase(this._repository);
 
   final AuthRepository _repository;
 
+  /// Ejecuta login por email/password con credenciales del formulario.
   Future<void> call({
     required String email,
     required String password,

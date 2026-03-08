@@ -2,9 +2,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../domain/entities/app_user.dart';
 
+/// Traduce un `User` de Firebase a la entidad de dominio [AppUser].
 class FirebaseUserMapper {
   const FirebaseUserMapper._();
 
+  /// Convierte un usuario de infraestructura a modelo puro de dominio.
   static AppUser toDomain(User user) {
     final providerIds = user.providerData
         .map((provider) => provider.providerId)

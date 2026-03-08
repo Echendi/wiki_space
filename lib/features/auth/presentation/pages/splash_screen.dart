@@ -6,6 +6,7 @@ import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/usecases/auth_use_cases.dart';
 import '../../../../core/router/app_routes.dart';
 
+/// Pantalla inicial animada que resuelve sesion y redirige.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({
     super.key,
@@ -27,6 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
       AssetLottie(_splashAssetPath).load();
   bool _didRedirect = false;
 
+  /// Resuelve sesion garantizando un tiempo minimo visible de splash.
   Future<bool> _resolveSession() async {
     final results = await Future.wait<bool>([
       widget.authUseCases.hasPersistedSession(),
@@ -35,6 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
     return results.first;
   }
 
+  /// Renderiza animacion inicial y redirige al destino correspondiente.
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);

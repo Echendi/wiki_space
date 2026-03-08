@@ -5,11 +5,14 @@ import '../../domain/entities/auth_exception.dart';
 import '../../domain/usecases/auth_use_cases.dart';
 import 'auth_state.dart';
 
+/// Orquesta acciones de autenticacion y publica estado para UI.
 class AuthCubit extends Cubit<AuthState> {
+  /// Crea el cubit en estado `idle` con fachada de casos de uso inyectada.
   AuthCubit(this._authUseCases) : super(const AuthState());
 
   final AuthUseCases _authUseCases;
 
+  /// Ejecuta login con email/contrasena y publica progreso/resultado.
   Future<void> signInWithEmail({
     required String email,
     required String password,
@@ -23,6 +26,7 @@ class AuthCubit extends Cubit<AuthState> {
     );
   }
 
+  /// Ejecuta registro con email y, si aplica, actualiza nombre visible.
   Future<void> signUpWithEmail({
     required String email,
     required String password,
@@ -43,6 +47,7 @@ class AuthCubit extends Cubit<AuthState> {
     );
   }
 
+  /// Ejecuta inicio de sesion con Google.
   Future<void> signInWithGoogle() async {
     await _run(
       action: AuthAction.signInGoogle,
@@ -50,6 +55,7 @@ class AuthCubit extends Cubit<AuthState> {
     );
   }
 
+  /// Ejecuta inicio de sesion con Facebook.
   Future<void> signInWithFacebook() async {
     await _run(
       action: AuthAction.signInFacebook,
@@ -57,6 +63,7 @@ class AuthCubit extends Cubit<AuthState> {
     );
   }
 
+  /// Ejecuta cierre de sesion del usuario actual.
   Future<void> signOut() async {
     await _run(
       action: AuthAction.signOut,
@@ -64,10 +71,12 @@ class AuthCubit extends Cubit<AuthState> {
     );
   }
 
+  /// Reinicia estado visual a `idle` y limpia errores.
   void resetToIdle() {
     _safeEmit(const AuthState());
   }
 
+  /// Emite estado solo si el cubit sigue abierto para evitar excepciones.
   void _safeEmit(AuthState newState) {
     if (isClosed) {
       return;
@@ -75,6 +84,7 @@ class AuthCubit extends Cubit<AuthState> {
     emit(newState);
   }
 
+  /// Pipeline comun para acciones de auth con mapeo de errores a `errorCode`.
   Future<void> _run({
     required AuthAction action,
     required Future<void> Function() run,

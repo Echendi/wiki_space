@@ -5,10 +5,13 @@ import '../../../../core/di/service_locator.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/widgets/global_top_bar/global_top_bar.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../models/password_rule.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
+import '../utils/auth_password_policy.dart';
 import '../widgets/widgets.dart';
 
+/// Pantalla de registro de usuario con validaciones de seguridad basicas.
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -24,12 +27,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmPasswordController = TextEditingController();
   late final AuthCubit _authCubit;
 
+  /// Obtiene una instancia de [AuthCubit] desde DI al iniciar pantalla.
   @override
   void initState() {
     super.initState();
     _authCubit = serviceLocator<AuthCubit>();
   }
 
+  /// Libera controladores y cierra recursos locales del flujo de auth.
   @override
   void dispose() {
     _nameController.dispose();
@@ -40,6 +45,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  /// Valida formulario y ejecuta registro por email.
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -52,6 +58,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  /// Muestra feedback de exito/error para la accion de registro.
   void _onAuthStateChanged(BuildContext context, AuthState state) {
     if (state.action != AuthAction.signUpEmail) {
       return;
@@ -80,6 +87,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  /// Traduce codigos de error de registro a mensajes localizados.
   String _errorMessageForCode(String code) {
     final l10n = AppLocalizations.of(context);
     switch (code) {
@@ -96,6 +104,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  /// Valida formato basico de correo para registro.
   String? _validateEmail(String? value) {
     final l10n = AppLocalizations.of(context);
     final email = value?.trim() ?? '';
@@ -111,6 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return null;
   }
 
+  /// Valida que el nombre no sea vacio.
   String? _validateName(String? value) {
     final l10n = AppLocalizations.of(context);
     if ((value ?? '').trim().isEmpty) {
@@ -119,54 +129,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return null;
   }
 
+  /// Valida politica de contrasena para alta de cuenta.
   String? _validatePassword(String? value) {
-    final l10n = AppLocalizations.of(context);
-    final password = value ?? '';
-
-    if (password.isEmpty) {
-      return l10n.passwordRequired;
-    }
-
-    if (password.length < 8) {
-      return l10n.passwordLengthError;
-    }
-
-    if (!RegExp(r'[A-Z]').hasMatch(password)) {
-      return l10n.passwordUppercaseError;
-    }
-
-    if (!RegExp(r'[0-9]').hasMatch(password)) {
-      return l10n.passwordNumberError;
-    }
-
-    if (!RegExp(r'[^A-Za-z0-9]').hasMatch(password)) {
-      return l10n.passwordSpecialError;
-    }
-
-    return null;
+    return AuthPasswordPolicy.validatePassword(
+      AppLocalizations.of(context),
+      value,
+    );
   }
 
-  List<_PasswordRule> _passwordRules(AppLocalizations l10n, String password) {
-    return [
-      _PasswordRule(
-        label: l10n.passwordLengthError,
-        passed: password.length >= 8,
-      ),
-      _PasswordRule(
-        label: l10n.passwordUppercaseError,
-        passed: RegExp(r'[A-Z]').hasMatch(password),
-      ),
-      _PasswordRule(
-        label: l10n.passwordNumberError,
-        passed: RegExp(r'[0-9]').hasMatch(password),
-      ),
-      _PasswordRule(
-        label: l10n.passwordSpecialError,
-        passed: RegExp(r'[^A-Za-z0-9]').hasMatch(password),
-      ),
-    ];
+  /// Construye reglas visuales para checklist de password.
+  List<PasswordRule> _passwordRules(AppLocalizations l10n, String password) {
+    return AuthPasswordPolicy.buildRules(l10n, password);
   }
 
+  /// Verifica coincidencia entre password y confirmacion.
   String? _validateConfirmPassword(String? value) {
     final l10n = AppLocalizations.of(context);
     if ((value ?? '') != _passwordController.text) {
@@ -175,6 +151,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return null;
   }
 
+  /// Crea decoracion consistente de campos con soporte de tema.
   InputDecoration _fieldDecoration(
     BuildContext context,
     String label,
@@ -197,6 +174,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  /// Construye la UI del formulario de registro.
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -289,7 +267,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              _PasswordChecks(
+                              PasswordChecks(
                                 controller: _passwordController,
                                 isDark: isDark,
                                 rulesBuilder: (password) =>
@@ -334,72 +312,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _PasswordRule {
-  const _PasswordRule({required this.label, required this.passed});
-
-  final String label;
-  final bool passed;
-}
-
-class _PasswordChecks extends StatelessWidget {
-  const _PasswordChecks({
-    required this.controller,
-    required this.isDark,
-    required this.rulesBuilder,
-  });
-
-  final TextEditingController controller;
-  final bool isDark;
-  final List<_PasswordRule> Function(String password) rulesBuilder;
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<TextEditingValue>(
-      valueListenable: controller,
-      builder: (context, value, _) {
-        final rules = rulesBuilder(value.text);
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (final rule in rules)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      rule.passed
-                          ? Icons.check_circle_rounded
-                          : Icons.radio_button_unchecked_rounded,
-                      size: 16,
-                      color: rule.passed
-                          ? Colors.green
-                          : (isDark
-                              ? AppPalette.onDarkMuted
-                              : AppPalette.onPrimary.withValues(alpha: 0.6)),
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        rule.label,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: isDark
-                                  ? AppPalette.onDarkMuted
-                                  : AppPalette.onPrimary.withValues(alpha: 0.8),
-                            ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        );
-      },
     );
   }
 }

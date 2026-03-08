@@ -6,6 +6,7 @@ import '../../domain/entities/auth_exception.dart';
 import '../mappers/firebase_user_mapper.dart';
 import 'auth_sign_in_strategy.dart';
 
+/// Estrategia de login social con Google + Firebase Credential.
 class GoogleSignInStrategy implements AuthSignInStrategy {
   const GoogleSignInStrategy({
     required FirebaseAuth firebaseAuth,
@@ -16,6 +17,9 @@ class GoogleSignInStrategy implements AuthSignInStrategy {
   final FirebaseAuth _firebaseAuth;
   final GoogleSignIn _googleSignIn;
 
+  /// Ejecuta el flujo OAuth con Google y canjea credencial en Firebase.
+  ///
+  /// Lanza [AuthException] en cancelacion o cuando no hay usuario resultante.
   @override
   Future<AppUser> signIn() async {
     final googleUser = await _googleSignIn.signIn();

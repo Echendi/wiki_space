@@ -1,3 +1,4 @@
+/// Entidad de dominio que representa al usuario autenticado.
 class AppUser {
   const AppUser({
     required this.id,

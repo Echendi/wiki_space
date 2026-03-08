@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -10,10 +8,13 @@ import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/global_top_bar/global_top_bar.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../models/password_rule.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
+import '../utils/auth_password_policy.dart';
 import '../widgets/widgets.dart';
 
+/// Pantalla de inicio de sesion con email y proveedores sociales.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -29,12 +30,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _obscurePassword = true;
 
+  /// Obtiene una instancia de [AuthCubit] desde el contenedor DI.
   @override
   void initState() {
     super.initState();
     _authCubit = serviceLocator<AuthCubit>();
   }
 
+  /// Libera controladores y cierra el cubit local de pantalla.
   @override
   void dispose() {
     _emailController.dispose();
@@ -43,6 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  /// Valida formulario y ejecuta login por email.
   Future<void> _submit() async {
     final form = _formKey.currentState;
     if (form == null || !form.validate()) {
@@ -57,16 +61,19 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  /// Ejecuta login social con Google.
   Future<void> _signInWithGoogle() async {
     FocusScope.of(context).unfocus();
     await _authCubit.signInWithGoogle();
   }
 
+  /// Ejecuta login social con Facebook.
   Future<void> _signInWithFacebook() async {
     FocusScope.of(context).unfocus();
     await _authCubit.signInWithFacebook();
   }
 
+  /// Muestra un `SnackBar` de error reemplazando el actual si existe.
   void _showError(String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -78,6 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
   }
 
+  /// Traduce `errorCode` tecnico de auth a mensaje localizado para UI.
   String _errorMessageForCode(String code) {
     final l10n = AppLocalizations.of(context);
     switch (code) {
@@ -108,6 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  /// Reacciona a fallos de autenticacion y muestra feedback en pantalla.
   void _onAuthStateChanged(BuildContext context, AuthState state) {
     if (state.status != AuthViewStatus.failure) {
       return;
@@ -121,6 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _showError(_errorMessageForCode(code));
   }
 
+  /// Valida formato basico de correo.
   String? _validateEmail(String? value) {
     final l10n = AppLocalizations.of(context);
     final email = value?.trim() ?? '';
@@ -136,54 +146,20 @@ class _LoginScreenState extends State<LoginScreen> {
     return null;
   }
 
+  /// Valida politica de contrasena usada en autenticacion.
   String? _validatePassword(String? value) {
-    final l10n = AppLocalizations.of(context);
-    final password = value ?? '';
-
-    if (password.isEmpty) {
-      return l10n.passwordRequired;
-    }
-
-    if (password.length < 8) {
-      return l10n.passwordLengthError;
-    }
-
-    if (!RegExp(r'[A-Z]').hasMatch(password)) {
-      return l10n.passwordUppercaseError;
-    }
-
-    if (!RegExp(r'[0-9]').hasMatch(password)) {
-      return l10n.passwordNumberError;
-    }
-
-    if (!RegExp(r'[^A-Za-z0-9]').hasMatch(password)) {
-      return l10n.passwordSpecialError;
-    }
-
-    return null;
+    return AuthPasswordPolicy.validatePassword(
+      AppLocalizations.of(context),
+      value,
+    );
   }
 
-  List<_PasswordRule> _passwordRules(AppLocalizations l10n, String password) {
-    return [
-      _PasswordRule(
-        label: l10n.passwordLengthError,
-        passed: password.length >= 8,
-      ),
-      _PasswordRule(
-        label: l10n.passwordUppercaseError,
-        passed: RegExp(r'[A-Z]').hasMatch(password),
-      ),
-      _PasswordRule(
-        label: l10n.passwordNumberError,
-        passed: RegExp(r'[0-9]').hasMatch(password),
-      ),
-      _PasswordRule(
-        label: l10n.passwordSpecialError,
-        passed: RegExp(r'[^A-Za-z0-9]').hasMatch(password),
-      ),
-    ];
+  /// Construye lista de reglas para renderizar checks dinamicos de password.
+  List<PasswordRule> _passwordRules(AppLocalizations l10n, String password) {
+    return AuthPasswordPolicy.buildRules(l10n, password);
   }
 
+  /// Construye la UI de login y enlaza listeners/blocs del flujo auth.
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -203,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               return Stack(
                 children: [
-                  const _SpaceBackground(),
+                  const AuthSpaceBackground(),
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final isCompact = constraints.maxHeight < 760;
@@ -262,7 +238,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           compact: isCompact,
                                         ),
                                         SizedBox(height: isCompact ? 14 : 22),
-                                        _ThemedField(
+                                        ThemedAuthField(
                                           controller: _emailController,
                                           label: l10n.emailLabel,
                                           icon: Icons.alternate_email_rounded,
@@ -273,7 +249,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           isCompact: isCompact,
                                         ),
                                         SizedBox(height: isCompact ? 10 : 14),
-                                        _ThemedField(
+                                        ThemedAuthField(
                                           controller: _passwordController,
                                           label: l10n.passwordLabel,
                                           icon: Icons.lock_outline_rounded,
@@ -302,7 +278,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ),
                                         ),
                                         SizedBox(height: isCompact ? 6 : 10),
-                                        _PasswordChecks(
+                                        PasswordChecks(
                                           controller: _passwordController,
                                           isDark: isDark,
                                           rulesBuilder: (password) =>
@@ -378,7 +354,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         Row(
                                           children: [
                                             Expanded(
-                                              child: _SocialIconButton(
+                                              child: SocialIconButton(
                                                 semanticLabel:
                                                     l10n.continueWithGoogle,
                                                 iconAssetPath:
@@ -390,7 +366,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                             ),
                                             const SizedBox(width: 10),
                                             Expanded(
-                                              child: _SocialIconButton(
+                                              child: SocialIconButton(
                                                 semanticLabel:
                                                     l10n.continueWithFacebook,
                                                 iconAssetPath:
@@ -428,304 +404,5 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
-  }
-}
-
-class _SocialIconButton extends StatelessWidget {
-  const _SocialIconButton({
-    required this.semanticLabel,
-    required this.iconAssetPath,
-    required this.onPressed,
-  });
-
-  final String semanticLabel;
-  final String iconAssetPath;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Tooltip(
-      message: semanticLabel,
-      child: SizedBox(
-        height: 48,
-        child: OutlinedButton(
-          onPressed: onPressed,
-          style: OutlinedButton.styleFrom(
-            side: BorderSide(
-              color: AppPalette.accent.withValues(alpha: 0.35),
-            ),
-            backgroundColor: (isDark
-                    ? AppPalette.surfaceDarkAlt
-                    : AppPalette.surfaceLightAlt)
-                .withValues(alpha: isDark ? 0.72 : 0.9),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-          ),
-          child: Container(
-            width: 28,
-            height: 28,
-            alignment: Alignment.center,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: Image.asset(
-                iconAssetPath,
-                fit: BoxFit.contain,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ThemedField extends StatelessWidget {
-  const _ThemedField({
-    required this.controller,
-    required this.label,
-    required this.icon,
-    required this.validator,
-    required this.isCompact,
-    this.keyboardType,
-    this.obscureText = false,
-    this.textInputAction,
-    this.onFieldSubmitted,
-    this.suffixIcon,
-  });
-
-  final TextEditingController controller;
-  final String label;
-  final IconData icon;
-  final String? Function(String?) validator;
-  final bool isCompact;
-  final TextInputType? keyboardType;
-  final bool obscureText;
-  final TextInputAction? textInputAction;
-  final void Function(String)? onFieldSubmitted;
-  final Widget? suffixIcon;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return TextFormField(
-      controller: controller,
-      validator: validator,
-      keyboardType: keyboardType,
-      obscureText: obscureText,
-      textInputAction: textInputAction,
-      onFieldSubmitted: onFieldSubmitted,
-      style: AppTextStyles.inputText(isDark),
-      decoration: InputDecoration(
-        isDense: isCompact,
-        contentPadding: EdgeInsets.symmetric(
-          vertical: isCompact ? 12 : 16,
-          horizontal: isCompact ? 12 : 14,
-        ),
-        labelText: label,
-        labelStyle: AppTextStyles.inputLabel(isDark),
-        prefixIcon: Icon(
-          icon,
-          color: AppPalette.accent,
-          size: isCompact ? 20 : 24,
-        ),
-        suffixIcon: suffixIcon,
-        filled: true,
-        fillColor:
-            (isDark ? AppPalette.surfaceDarkAlt : AppPalette.surfaceLight)
-                .withValues(alpha: isDark ? 0.82 : 1),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
-        errorStyle: AppTextStyles.errorStyle(),
-      ),
-    );
-  }
-}
-
-class _PasswordRule {
-  const _PasswordRule({
-    required this.label,
-    required this.passed,
-  });
-
-  final String label;
-  final bool passed;
-}
-
-class _PasswordChecks extends StatelessWidget {
-  const _PasswordChecks({
-    required this.controller,
-    required this.isDark,
-    required this.rulesBuilder,
-  });
-
-  final TextEditingController controller;
-  final bool isDark;
-  final List<_PasswordRule> Function(String password) rulesBuilder;
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<TextEditingValue>(
-      valueListenable: controller,
-      builder: (context, value, _) {
-        final rules = rulesBuilder(value.text);
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (final rule in rules)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      rule.passed
-                          ? Icons.check_circle_rounded
-                          : Icons.radio_button_unchecked_rounded,
-                      size: 16,
-                      color: rule.passed
-                          ? Colors.green
-                          : (isDark
-                              ? AppPalette.onDarkMuted
-                              : AppPalette.onPrimary.withValues(alpha: 0.6)),
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        rule.label,
-                        style: AppTextStyles.caption(isDark),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _SpaceBackground extends StatefulWidget {
-  const _SpaceBackground();
-
-  @override
-  State<_SpaceBackground> createState() => _SpaceBackgroundState();
-}
-
-class _SpaceBackgroundState extends State<_SpaceBackground>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(seconds: 10),
-  )..repeat(reverse: true);
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        return DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color.lerp(
-                  isDark
-                      ? AppPalette.backgroundDark
-                      : AppPalette.backgroundLight,
-                  isDark
-                      ? AppPalette.surfaceDarkAlt
-                      : AppPalette.surfaceLightAlt,
-                  _controller.value,
-                )!,
-                isDark ? AppPalette.surfaceDark : AppPalette.surfaceLight,
-                Color.lerp(
-                  isDark
-                      ? AppPalette.surfaceDarkAlt
-                      : AppPalette.surfaceLightAlt,
-                  isDark ? AppPalette.secondary : AppPalette.accent,
-                  _controller.value,
-                )!,
-              ],
-            ),
-          ),
-          child: CustomPaint(
-            painter: _StarfieldPainter(
-              seed: 21,
-              progress: _controller.value,
-              isDark: isDark,
-            ),
-            child: const SizedBox.expand(),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _StarfieldPainter extends CustomPainter {
-  const _StarfieldPainter({
-    required this.seed,
-    required this.progress,
-    required this.isDark,
-  });
-
-  final int seed;
-  final double progress;
-  final bool isDark;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rng = math.Random(seed);
-    final starPaint = Paint()..color = AppPalette.star;
-
-    for (var i = 0; i < 100; i++) {
-      final x = rng.nextDouble() * size.width;
-      final y = rng.nextDouble() * size.height;
-      final twinkle = 0.4 + (rng.nextDouble() * 0.6);
-      final animated =
-          (0.75 + math.sin((progress * math.pi * 2) + i) * 0.25) * twinkle;
-      starPaint.color =
-          AppPalette.star.withValues(alpha: animated.clamp(0.2, 1));
-      canvas.drawCircle(Offset(x, y), rng.nextDouble() * 1.8 + 0.4, starPaint);
-    }
-
-    final nebulaPaint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          (isDark ? AppPalette.primary : AppPalette.secondary)
-              .withValues(alpha: isDark ? 0.25 : 0.17),
-          Colors.transparent,
-        ],
-      ).createShader(
-        Rect.fromCircle(
-          center: Offset(size.width * 0.82, size.height * 0.15),
-          radius: size.width * 0.36,
-        ),
-      );
-
-    canvas.drawCircle(
-      Offset(size.width * 0.82, size.height * 0.15),
-      size.width * 0.36,
-      nebulaPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _StarfieldPainter oldDelegate) {
-    return oldDelegate.progress != progress || oldDelegate.isDark != isDark;
   }
 }

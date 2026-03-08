@@ -1,5 +1,7 @@
+/// Estado visual del flujo de autenticacion.
 enum AuthViewStatus { idle, loading, success, failure }
 
+/// Accion de autenticacion actualmente en ejecucion o finalizada.
 enum AuthAction {
   none,
   signInEmail,
@@ -9,6 +11,7 @@ enum AuthAction {
   signOut,
 }
 
+/// Estado inmutable consumido por pantallas de autenticacion.
 class AuthState {
   const AuthState({
     this.status = AuthViewStatus.idle,
@@ -20,8 +23,12 @@ class AuthState {
   final AuthAction action;
   final String? errorCode;
 
+  /// Indica si la UI debe mostrar bloqueo/carga de accion actual.
   bool get isLoading => status == AuthViewStatus.loading;
 
+  /// Crea una nueva instancia inmutable con cambios parciales.
+  ///
+  /// `clearError` fuerza limpieza de `errorCode` aunque no se pase uno nuevo.
   AuthState copyWith({
     AuthViewStatus? status,
     AuthAction? action,

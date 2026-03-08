@@ -6,6 +6,7 @@ import '../../domain/entities/auth_exception.dart';
 import '../mappers/firebase_user_mapper.dart';
 import 'auth_sign_in_strategy.dart';
 
+/// Estrategia de login social con Facebook + Firebase Credential.
 class FacebookSignInStrategy implements AuthSignInStrategy {
   const FacebookSignInStrategy({
     required FirebaseAuth firebaseAuth,
@@ -13,6 +14,9 @@ class FacebookSignInStrategy implements AuthSignInStrategy {
 
   final FirebaseAuth _firebaseAuth;
 
+  /// Ejecuta autenticacion con Facebook y autentica en Firebase.
+  ///
+  /// Traduce estados del SDK de Facebook a [AuthException] de dominio.
   @override
   Future<AppUser> signIn() async {
     final loginResult = await FacebookAuth.instance.login(

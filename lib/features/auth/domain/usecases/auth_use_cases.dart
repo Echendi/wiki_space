@@ -9,7 +9,11 @@ import 'sign_up_with_email_and_password_use_case.dart';
 import 'update_display_name_use_case.dart';
 import 'watch_auth_state_use_case.dart';
 
+/// Fachada de casos de uso de autenticacion.
+///
+/// Agrupa todas las acciones de la feature para simplificar inyeccion.
 class AuthUseCases {
+  /// Crea la fachada a partir de casos de uso ya construidos.
   const AuthUseCases({
     required this.getCurrentUser,
     required this.watchAuthState,
@@ -22,6 +26,7 @@ class AuthUseCases {
     required this.signOut,
   });
 
+  /// Fabrica conveniente que instancia todos los casos desde [AuthRepository].
   factory AuthUseCases.fromRepository(AuthRepository repository) {
     return AuthUseCases(
       getCurrentUser: GetCurrentUserUseCase(repository),
@@ -36,13 +41,30 @@ class AuthUseCases {
     );
   }
 
+  /// Caso de uso para leer usuario actual.
   final GetCurrentUserUseCase getCurrentUser;
+
+  /// Caso de uso para observar cambios de autenticacion.
   final WatchAuthStateUseCase watchAuthState;
+
+  /// Caso de uso para validar sesion persistida.
   final HasPersistedSessionUseCase hasPersistedSession;
+
+  /// Caso de uso de login email/password.
   final SignInWithEmailAndPasswordUseCase signInWithEmailAndPassword;
+
+  /// Caso de uso de registro email/password.
   final SignUpWithEmailAndPasswordUseCase signUpWithEmailAndPassword;
+
+  /// Caso de uso de login Google.
   final SignInWithGoogleUseCase signInWithGoogle;
+
+  /// Caso de uso de login Facebook.
   final SignInWithFacebookUseCase signInWithFacebook;
+
+  /// Caso de uso para actualizar nombre visible.
   final UpdateDisplayNameUseCase updateDisplayName;
+
+  /// Caso de uso de cierre de sesion.
   final SignOutUseCase signOut;
 }

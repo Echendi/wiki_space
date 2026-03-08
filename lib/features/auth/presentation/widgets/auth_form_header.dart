@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import 'space_logo.dart';
 
+/// Cabecera estandar para formularios de login y registro.
 class AuthFormHeader extends StatelessWidget {
   const AuthFormHeader({
     super.key,
