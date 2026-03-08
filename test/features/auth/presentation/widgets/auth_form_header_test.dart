@@ -6,7 +6,7 @@ import 'package:wiki_space/features/auth/presentation/widgets/space_logo.dart';
 void main() {
   // Helper para montar el widget bajo un arbol Material completo.
   // Esto asegura que estilos/temas basados en Material funcionen en test.
-  Widget _buildHeader({
+  Widget buildHeader({
     required String title,
     String? subtitle,
     bool compact = false,
@@ -32,7 +32,7 @@ void main() {
     ) async {
       // Arrange + Act: render del encabezado con subtitulo valido.
       await tester.pumpWidget(
-        _buildHeader(title: 'Iniciar sesion', subtitle: 'Bienvenido de vuelta'),
+        buildHeader(title: 'Iniciar sesion', subtitle: 'Bienvenido de vuelta'),
       );
 
       // Assert: deben verse logo, titulo y subtitulo exactamente una vez.
@@ -45,7 +45,7 @@ void main() {
         (tester) async {
       // Arrange + Act: render con subtitulo solo en espacios.
       await tester.pumpWidget(
-        _buildHeader(title: 'Registro', subtitle: '   '),
+        buildHeader(title: 'Registro', subtitle: '   '),
       );
 
       // Assert: mantiene logo/titulo, pero no muestra texto de subtitulo vacio.

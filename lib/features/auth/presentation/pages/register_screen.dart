@@ -10,18 +10,7 @@ import '../cubit/auth_state.dart';
 import '../widgets/widgets.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({
-    super.key,
-    required this.locale,
-    required this.themeMode,
-    required this.onLocaleChanged,
-    required this.onThemeModeChanged,
-  });
-
-  final Locale locale;
-  final ThemeMode themeMode;
-  final ValueChanged<Locale> onLocaleChanged;
-  final ValueChanged<ThemeMode> onThemeModeChanged;
+  const RegisterScreen({super.key});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -215,13 +204,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final titleColor = isDark ? AppPalette.onDark : AppPalette.onPrimary;
 
     return Scaffold(
-      appBar: GlobalTopBar(
-        locale: widget.locale,
-        themeMode: widget.themeMode,
-        onLocaleChanged: widget.onLocaleChanged,
-        onThemeModeChanged: widget.onThemeModeChanged,
-        showBackButton: true,
-      ),
+      appBar: const GlobalTopBar(showBackButton: true),
       body: BlocProvider<AuthCubit>.value(
         value: _authCubit,
         child: BlocListener<AuthCubit, AuthState>(

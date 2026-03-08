@@ -20,17 +20,9 @@ class DetailScreen extends StatefulWidget {
   const DetailScreen({
     super.key,
     required this.articleId,
-    required this.locale,
-    required this.themeMode,
-    required this.onLocaleChanged,
-    required this.onThemeModeChanged,
   });
 
   final String articleId;
-  final Locale locale;
-  final ThemeMode themeMode;
-  final ValueChanged<Locale> onLocaleChanged;
-  final ValueChanged<ThemeMode> onThemeModeChanged;
 
   @override
   State<DetailScreen> createState() => _DetailScreenState();
@@ -45,12 +37,13 @@ class _DetailScreenState extends State<DetailScreen> {
   void initState() {
     super.initState();
     _detailCubit = serviceLocator<DetailCubit>();
-    _articleLanguageCode = widget.locale.languageCode;
+    _articleLanguageCode = 'es';
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _articleLanguageCode = Localizations.localeOf(context).languageCode;
     _loadIfNeeded();
   }
 
@@ -59,7 +52,7 @@ class _DetailScreenState extends State<DetailScreen> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.articleId != widget.articleId) {
       // New detail target: pin language at navigation moment.
-      _articleLanguageCode = widget.locale.languageCode;
+      _articleLanguageCode = Localizations.localeOf(context).languageCode;
       _loadIfNeeded(force: true);
     }
   }
@@ -86,13 +79,7 @@ class _DetailScreenState extends State<DetailScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: GlobalTopBar(
-        locale: widget.locale,
-        themeMode: widget.themeMode,
-        onLocaleChanged: widget.onLocaleChanged,
-        onThemeModeChanged: widget.onThemeModeChanged,
-        showBackButton: true,
-      ),
+      appBar: const GlobalTopBar(showBackButton: true),
       body: BlocProvider.value(
         value: _detailCubit,
         child: BlocBuilder<DetailCubit, DetailState>(

@@ -10,17 +10,9 @@ class SplashScreen extends StatefulWidget {
   const SplashScreen({
     super.key,
     required this.authUseCases,
-    required this.locale,
-    required this.themeMode,
-    required this.onLocaleChanged,
-    required this.onThemeModeChanged,
   });
 
   final AuthUseCases authUseCases;
-  final Locale locale;
-  final ThemeMode themeMode;
-  final ValueChanged<Locale> onLocaleChanged;
-  final ValueChanged<ThemeMode> onThemeModeChanged;
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();

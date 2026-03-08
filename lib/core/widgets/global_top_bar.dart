@@ -1,25 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../di/service_locator.dart';
+import '../settings/cubit/app_settings_cubit.dart';
 import '../services/connectivity_status_service.dart';
 import '../../features/auth/presentation/widgets/space_logo.dart';
 import '../../l10n/generated/app_localizations.dart';
 
-class GlobalTopBar extends StatefulWidget implements PreferredSizeWidget {
+class GlobalTopBar extends StatelessWidget implements PreferredSizeWidget {
   const GlobalTopBar({
     super.key,
-    required this.locale,
-    required this.themeMode,
-    required this.onLocaleChanged,
-    required this.onThemeModeChanged,
     this.showBackButton = false,
     this.onBackPressed,
   });
 
-  final Locale locale;
-  final ThemeMode themeMode;
-  final ValueChanged<Locale> onLocaleChanged;
-  final ValueChanged<ThemeMode> onThemeModeChanged;
   final bool showBackButton;
   final VoidCallback? onBackPressed;
 
@@ -27,52 +21,22 @@ class GlobalTopBar extends StatefulWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
-  State<GlobalTopBar> createState() => _GlobalTopBarState();
-}
-
-class _GlobalTopBarState extends State<GlobalTopBar> {
-  late ThemeMode _currentThemeMode;
-  late String _currentLanguageCode;
-  late final ConnectivityStatusService _connectivityStatusService;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentThemeMode = widget.themeMode;
-    _currentLanguageCode = widget.locale.languageCode;
-    _connectivityStatusService = serviceLocator<ConnectivityStatusService>();
-  }
-
-  @override
-  void didUpdateWidget(covariant GlobalTopBar oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    if (oldWidget.themeMode != widget.themeMode &&
-        widget.themeMode != _currentThemeMode) {
-      _currentThemeMode = widget.themeMode;
-    }
-
-    if (oldWidget.locale.languageCode != widget.locale.languageCode &&
-        widget.locale.languageCode != _currentLanguageCode) {
-      _currentLanguageCode = widget.locale.languageCode;
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final settingsState = context.watch<AppSettingsCubit>().state;
+    final currentThemeMode = settingsState.themeMode;
+    final currentLanguageCode = settingsState.locale.languageCode;
+    final settingsCubit = context.read<AppSettingsCubit>();
+    final connectivityStatusService =
+        serviceLocator<ConnectivityStatusService>();
     final appBarForeground = Theme.of(context).appBarTheme.foregroundColor ??
         Theme.of(context).colorScheme.onSurface;
-    final effectiveLocale = Localizations.localeOf(context);
-    if (_currentLanguageCode != effectiveLocale.languageCode) {
-      _currentLanguageCode = effectiveLocale.languageCode;
-    }
 
     return AppBar(
-      leading: widget.showBackButton
+      leading: showBackButton
           ? IconButton(
-              onPressed: widget.onBackPressed ??
-                  () => Navigator.of(context).maybePop(),
+              onPressed:
+                  onBackPressed ?? () => Navigator.of(context).maybePop(),
               icon: const Icon(Icons.arrow_back_rounded),
             )
           : null,
@@ -86,7 +50,7 @@ class _GlobalTopBarState extends State<GlobalTopBar> {
       ),
       actions: [
         ValueListenableBuilder<bool>(
-          valueListenable: _connectivityStatusService.isOnline,
+          valueListenable: connectivityStatusService.isOnline,
           builder: (context, isOnline, _) {
             if (isOnline) {
               return const SizedBox.shrink();
@@ -95,7 +59,8 @@ class _GlobalTopBarState extends State<GlobalTopBar> {
             return Padding(
               padding: const EdgeInsets.only(right: 8),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF59E0B),
                   borderRadius: BorderRadius.circular(10),
@@ -122,26 +87,23 @@ class _GlobalTopBarState extends State<GlobalTopBar> {
           },
         ),
         IconButton(
-          tooltip: _themeTooltip(l10n, _currentThemeMode),
+          tooltip: _themeTooltip(l10n, currentThemeMode),
           onPressed: () {
-            final nextMode = _nextThemeMode(_currentThemeMode);
-            setState(() {
-              _currentThemeMode = nextMode;
-            });
-            widget.onThemeModeChanged(nextMode);
+            final nextMode = _nextThemeMode(currentThemeMode);
+            settingsCubit.setThemeMode(nextMode);
           },
-          icon: Icon(_themeIcon(_currentThemeMode)),
+          icon: Icon(_themeIcon(currentThemeMode)),
         ),
         Tooltip(
-          message: _languageTooltip(l10n, _currentLanguageCode),
+          message: _languageTooltip(l10n, currentLanguageCode),
           child: TextButton.icon(
             onPressed: () => _showLanguagePickerSheet(context),
             icon: Text(
-              _languageFlag(_currentLanguageCode),
+              _languageFlag(currentLanguageCode),
               style: const TextStyle(fontSize: 16),
             ),
             label: Text(
-              _currentLanguageCode.toUpperCase(),
+              currentLanguageCode.toUpperCase(),
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: appBarForeground,
                     fontWeight: FontWeight.w700,
@@ -162,6 +124,8 @@ class _GlobalTopBarState extends State<GlobalTopBar> {
 
   Future<void> _showLanguagePickerSheet(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
+    final settingsCubit = context.read<AppSettingsCubit>();
+    final currentLanguageCode = settingsCubit.state.locale.languageCode;
     final selectedLocale = await showModalBottomSheet<Locale>(
       context: context,
       showDragHandle: true,
@@ -181,12 +145,12 @@ class _GlobalTopBarState extends State<GlobalTopBar> {
               ),
               _SelectionTile(
                 label: '${_languageFlag('es')} ${l10n.spanishOption}',
-                selected: _currentLanguageCode == 'es',
+                selected: currentLanguageCode == 'es',
                 onTap: () => Navigator.of(sheetContext).pop(const Locale('es')),
               ),
               _SelectionTile(
                 label: '${_languageFlag('en')} ${l10n.englishOption}',
-                selected: _currentLanguageCode == 'en',
+                selected: currentLanguageCode == 'en',
                 onTap: () => Navigator.of(sheetContext).pop(const Locale('en')),
               ),
               const SizedBox(height: 8),
@@ -197,14 +161,11 @@ class _GlobalTopBarState extends State<GlobalTopBar> {
     );
 
     if (selectedLocale == null ||
-        selectedLocale.languageCode == _currentLanguageCode) {
+        selectedLocale.languageCode == currentLanguageCode) {
       return;
     }
 
-    setState(() {
-      _currentLanguageCode = selectedLocale.languageCode;
-    });
-    widget.onLocaleChanged(selectedLocale);
+    await settingsCubit.setLocale(selectedLocale);
   }
 
   ThemeMode _nextThemeMode(ThemeMode currentThemeMode) {

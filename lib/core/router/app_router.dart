@@ -16,10 +16,6 @@ import 'app_routes.dart';
 class AppRouter {
   AppRouter({
     required this.authUseCases,
-    required this.locale,
-    required this.themeMode,
-    required this.onLocaleChanged,
-    required this.onThemeModeChanged,
   }) : _authRefresh = _AuthRefreshListenable(authUseCases.watchAuthState()) {
     router = GoRouter(
       initialLocation: AppRoutes.splash,
@@ -48,29 +44,15 @@ class AppRouter {
           path: AppRoutes.splash,
           builder: (context, state) => SplashScreen(
             authUseCases: authUseCases,
-            locale: locale(),
-            themeMode: themeMode(),
-            onLocaleChanged: onLocaleChanged,
-            onThemeModeChanged: onThemeModeChanged,
           ),
         ),
         GoRoute(
           path: AppRoutes.login,
-          builder: (context, state) => LoginScreen(
-            locale: locale(),
-            themeMode: themeMode(),
-            onLocaleChanged: onLocaleChanged,
-            onThemeModeChanged: onThemeModeChanged,
-          ),
+          builder: (context, state) => const LoginScreen(),
         ),
         GoRoute(
           path: AppRoutes.register,
-          builder: (context, state) => RegisterScreen(
-            locale: locale(),
-            themeMode: themeMode(),
-            onLocaleChanged: onLocaleChanged,
-            onThemeModeChanged: onThemeModeChanged,
-          ),
+          builder: (context, state) => const RegisterScreen(),
         ),
         StatefulShellRoute(
           builder: (context, state, navigationShell) => _MainShellScaffold(
@@ -87,13 +69,7 @@ class AppRouter {
               routes: [
                 GoRoute(
                   path: AppRoutes.home,
-                  builder: (context, state) => HomeScreen(
-                    authUseCases: authUseCases,
-                    locale: locale(),
-                    themeMode: themeMode(),
-                    onLocaleChanged: onLocaleChanged,
-                    onThemeModeChanged: onThemeModeChanged,
-                  ),
+                  builder: (context, state) => const HomeScreen(),
                 ),
               ],
             ),
@@ -101,13 +77,7 @@ class AppRouter {
               routes: [
                 GoRoute(
                   path: AppRoutes.profail,
-                  builder: (context, state) => ProfileScreen(
-                    authUseCases: authUseCases,
-                    locale: locale(),
-                    themeMode: themeMode(),
-                    onLocaleChanged: onLocaleChanged,
-                    onThemeModeChanged: onThemeModeChanged,
-                  ),
+                  builder: (context, state) => const ProfileScreen(),
                 ),
               ],
             ),
@@ -119,10 +89,6 @@ class AppRouter {
             key: state.pageKey,
             child: DetailScreen(
               articleId: state.uri.queryParameters['id'] ?? 'unknown',
-              locale: locale(),
-              themeMode: themeMode(),
-              onLocaleChanged: onLocaleChanged,
-              onThemeModeChanged: onThemeModeChanged,
             ),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
@@ -149,10 +115,6 @@ class AppRouter {
   }
 
   final AuthUseCases authUseCases;
-  final Locale Function() locale;
-  final ThemeMode Function() themeMode;
-  final ValueChanged<Locale> onLocaleChanged;
-  final ValueChanged<ThemeMode> onThemeModeChanged;
   final _AuthRefreshListenable _authRefresh;
 
   late final GoRouter router;

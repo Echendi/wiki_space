@@ -7,26 +7,12 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/widgets/global_top_bar.dart';
 import '../../../../core/widgets/space_scene_background.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../../auth/domain/usecases/auth_use_cases.dart';
 import '../cubit/home_cubit.dart';
 import '../cubit/home_state.dart';
 import '../widgets/widgets.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({
-    super.key,
-    required this.authUseCases,
-    required this.locale,
-    required this.themeMode,
-    required this.onLocaleChanged,
-    required this.onThemeModeChanged,
-  });
-
-  final AuthUseCases authUseCases;
-  final Locale locale;
-  final ThemeMode themeMode;
-  final ValueChanged<Locale> onLocaleChanged;
-  final ValueChanged<ThemeMode> onThemeModeChanged;
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -70,12 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: GlobalTopBar(
-        locale: widget.locale,
-        themeMode: widget.themeMode,
-        onLocaleChanged: widget.onLocaleChanged,
-        onThemeModeChanged: widget.onThemeModeChanged,
-      ),
+      appBar: const GlobalTopBar(),
       body: SpaceSceneBackground(
         isDark: isDark,
         child: SafeArea(

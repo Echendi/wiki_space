@@ -15,18 +15,7 @@ import '../cubit/auth_state.dart';
 import '../widgets/widgets.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({
-    super.key,
-    required this.locale,
-    required this.themeMode,
-    required this.onLocaleChanged,
-    required this.onThemeModeChanged,
-  });
-
-  final Locale locale;
-  final ThemeMode themeMode;
-  final ValueChanged<Locale> onLocaleChanged;
-  final ValueChanged<ThemeMode> onThemeModeChanged;
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -201,12 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: GlobalTopBar(
-        locale: widget.locale,
-        themeMode: widget.themeMode,
-        onLocaleChanged: widget.onLocaleChanged,
-        onThemeModeChanged: widget.onThemeModeChanged,
-      ),
+      appBar: const GlobalTopBar(),
       body: BlocProvider<AuthCubit>.value(
         value: _authCubit,
         child: BlocListener<AuthCubit, AuthState>(

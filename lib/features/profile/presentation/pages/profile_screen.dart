@@ -1,27 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/widgets/global_top_bar.dart';
 import '../../../../core/widgets/space_scene_background.dart';
+import '../../../../core/settings/cubit/app_settings_cubit.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../../auth/domain/usecases/auth_use_cases.dart';
+import '../../../auth/presentation/cubit/auth_session_cubit.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({
-    super.key,
-    required this.authUseCases,
-    required this.locale,
-    required this.themeMode,
-    required this.onLocaleChanged,
-    required this.onThemeModeChanged,
-  });
-
-  final AuthUseCases authUseCases;
-  final Locale locale;
-  final ThemeMode themeMode;
-  final ValueChanged<Locale> onLocaleChanged;
-  final ValueChanged<ThemeMode> onThemeModeChanged;
+  const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -35,19 +24,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _packageInfoFuture = PackageInfo.fromPlatform();
-    _selectedThemeMode = widget.themeMode;
+    _selectedThemeMode = ThemeMode.system;
   }
 
-  @override
-  void didUpdateWidget(covariant ProfileScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.themeMode != widget.themeMode &&
-        widget.themeMode != _selectedThemeMode) {
-      _selectedThemeMode = widget.themeMode;
-    }
-  }
-
-  void _handleThemeModeChanged(ThemeMode selectedMode) {
+  Future<void> _handleThemeModeChanged(
+    BuildContext context,
+    ThemeMode selectedMode,
+  ) async {
     if (selectedMode == _selectedThemeMode) {
       return;
     }
@@ -55,7 +38,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       _selectedThemeMode = selectedMode;
     });
-    widget.onThemeModeChanged(selectedMode);
+    await context.read<AppSettingsCubit>().setThemeMode(selectedMode);
   }
 
   String? _formatLastConnection(BuildContext context, DateTime? dateTime) {
@@ -85,16 +68,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final cardBorderColor = isDark
         ? AppPalette.borderMuted.withValues(alpha: 0.6)
         : AppPalette.borderMuted.withValues(alpha: 0.32);
-    final user = widget.authUseCases.getCurrentUser();
+    final user = context.watch<AuthSessionCubit>().state.user;
     final providerIds = user?.providerIds.toSet().toList() ?? const <String>[];
+    final appThemeMode = context.watch<AppSettingsCubit>().state.themeMode;
+    if (_selectedThemeMode != appThemeMode) {
+      _selectedThemeMode = appThemeMode;
+    }
 
     return Scaffold(
-      appBar: GlobalTopBar(
-        locale: widget.locale,
-        themeMode: _selectedThemeMode,
-        onLocaleChanged: widget.onLocaleChanged,
-        onThemeModeChanged: _handleThemeModeChanged,
-      ),
+      appBar: const GlobalTopBar(),
       body: SpaceSceneBackground(
         isDark: isDark,
         child: ListView(
@@ -170,7 +152,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           final selectedMode =
                               selection.isEmpty ? null : selection.first;
                           if (selectedMode != null) {
-                            _handleThemeModeChanged(selectedMode);
+                            _handleThemeModeChanged(context, selectedMode);
                           }
                         },
                       ),
@@ -342,7 +324,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return;
     }
 
-    await widget.authUseCases.signOut();
+    await context.read<AuthSessionCubit>().signOut();
     if (!context.mounted) {
       return;
     }

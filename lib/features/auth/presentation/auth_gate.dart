@@ -10,17 +10,9 @@ class AuthGate extends StatefulWidget {
   const AuthGate({
     super.key,
     required this.authUseCases,
-    required this.locale,
-    required this.themeMode,
-    required this.onLocaleChanged,
-    required this.onThemeModeChanged,
   });
 
   final AuthUseCases authUseCases;
-  final Locale locale;
-  final ThemeMode themeMode;
-  final ValueChanged<Locale> onLocaleChanged;
-  final ValueChanged<ThemeMode> onThemeModeChanged;
 
   @override
   State<AuthGate> createState() => _AuthGateState();
@@ -36,43 +28,22 @@ class _AuthGateState extends State<AuthGate> {
       future: _sessionCheck,
       builder: (context, sessionSnapshot) {
         if (sessionSnapshot.connectionState != ConnectionState.done) {
-          return _AuthLoadingScreen(
-            locale: widget.locale,
-            themeMode: widget.themeMode,
-            onLocaleChanged: widget.onLocaleChanged,
-            onThemeModeChanged: widget.onThemeModeChanged,
-          );
+          return const _AuthLoadingScreen();
         }
 
         return StreamBuilder<AppUser?>(
           stream: widget.authUseCases.watchAuthState(),
           builder: (context, authSnapshot) {
             if (authSnapshot.connectionState == ConnectionState.waiting) {
-              return _AuthLoadingScreen(
-                locale: widget.locale,
-                themeMode: widget.themeMode,
-                onLocaleChanged: widget.onLocaleChanged,
-                onThemeModeChanged: widget.onThemeModeChanged,
-              );
+              return const _AuthLoadingScreen();
             }
 
             final user = authSnapshot.data;
             if (user == null) {
-              return LoginScreen(
-                locale: widget.locale,
-                themeMode: widget.themeMode,
-                onLocaleChanged: widget.onLocaleChanged,
-                onThemeModeChanged: widget.onThemeModeChanged,
-              );
+              return const LoginScreen();
             }
 
-            return HomeScreen(
-              authUseCases: widget.authUseCases,
-              locale: widget.locale,
-              themeMode: widget.themeMode,
-              onLocaleChanged: widget.onLocaleChanged,
-              onThemeModeChanged: widget.onThemeModeChanged,
-            );
+            return const HomeScreen();
           },
         );
       },
@@ -81,27 +52,12 @@ class _AuthGateState extends State<AuthGate> {
 }
 
 class _AuthLoadingScreen extends StatelessWidget {
-  const _AuthLoadingScreen({
-    required this.locale,
-    required this.themeMode,
-    required this.onLocaleChanged,
-    required this.onThemeModeChanged,
-  });
-
-  final Locale locale;
-  final ThemeMode themeMode;
-  final ValueChanged<Locale> onLocaleChanged;
-  final ValueChanged<ThemeMode> onThemeModeChanged;
+  const _AuthLoadingScreen();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: GlobalTopBar(
-        locale: locale,
-        themeMode: themeMode,
-        onLocaleChanged: onLocaleChanged,
-        onThemeModeChanged: onThemeModeChanged,
-      ),
+      appBar: const GlobalTopBar(),
       body: Center(
         child: CircularProgressIndicator(
           color: Theme.of(context).colorScheme.primary,
