@@ -11,6 +11,10 @@ class HomeState {
     this.query = '',
     this.isLoadingMore = false,
     this.hasMore = true,
+    this.isOfflineMode = false,
+    this.isUsingCachedData = false,
+    this.isConnected = true,
+    this.showReconnectAction = false,
   });
 
   final HomeStatus status;
@@ -20,6 +24,10 @@ class HomeState {
   final String query;
   final bool isLoadingMore;
   final bool hasMore;
+  final bool isOfflineMode;
+  final bool isUsingCachedData;
+  final bool isConnected;
+  final bool showReconnectAction;
 
   List<SpaceArticle> get carouselArticles {
     if (articles.length <= 10) {
@@ -47,7 +55,12 @@ class HomeState {
     String? query,
     bool? isLoadingMore,
     bool? hasMore,
+    bool? isOfflineMode,
+    bool? isUsingCachedData,
+    bool? isConnected,
+    bool? showReconnectAction,
     bool clearError = false,
+    bool clearReconnectAction = false,
   }) {
     return HomeState(
       status: status ?? this.status,
@@ -57,6 +70,12 @@ class HomeState {
       query: query ?? this.query,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       hasMore: hasMore ?? this.hasMore,
+      isOfflineMode: isOfflineMode ?? this.isOfflineMode,
+      isUsingCachedData: isUsingCachedData ?? this.isUsingCachedData,
+      isConnected: isConnected ?? this.isConnected,
+      showReconnectAction: clearReconnectAction
+          ? false
+          : (showReconnectAction ?? this.showReconnectAction),
     );
   }
 }

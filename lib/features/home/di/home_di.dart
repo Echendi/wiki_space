@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 
+import '../data/datasources/space_local_data_source.dart';
 import '../data/datasources/space_remote_data_source.dart';
 import '../data/repositories/space_repository_impl.dart';
 import '../domain/repositories/space_repository.dart';
@@ -13,9 +14,24 @@ void registerHomeDependencies(GetIt serviceLocator) {
     );
   }
 
+  if (!serviceLocator.isRegistered<HomeCacheDatabase>()) {
+    serviceLocator
+        .registerLazySingleton<HomeCacheDatabase>(HomeCacheDatabase.new);
+  }
+
+  if (!serviceLocator.isRegistered<SpaceLocalDataSource>()) {
+    serviceLocator.registerLazySingleton<SpaceLocalDataSource>(
+      () => SpaceLocalDataSourceImpl(serviceLocator()),
+    );
+  }
+
   if (!serviceLocator.isRegistered<SpaceRepository>()) {
     serviceLocator.registerLazySingleton<SpaceRepository>(
-      () => SpaceRepositoryImpl(serviceLocator()),
+      () => SpaceRepositoryImpl(
+        serviceLocator(),
+        serviceLocator(),
+        serviceLocator(),
+      ),
     );
   }
 
@@ -29,5 +45,7 @@ void registerHomeDependencies(GetIt serviceLocator) {
     serviceLocator.unregister<HomeCubit>();
   }
 
-  serviceLocator.registerFactory<HomeCubit>(() => HomeCubit(serviceLocator()));
+  serviceLocator.registerFactory<HomeCubit>(
+    () => HomeCubit(serviceLocator(), serviceLocator()),
+  );
 }

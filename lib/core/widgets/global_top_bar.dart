@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../di/service_locator.dart';
+import '../services/connectivity_status_service.dart';
 import '../../features/auth/presentation/widgets/space_logo.dart';
 import '../../l10n/generated/app_localizations.dart';
 
@@ -31,12 +33,14 @@ class GlobalTopBar extends StatefulWidget implements PreferredSizeWidget {
 class _GlobalTopBarState extends State<GlobalTopBar> {
   late ThemeMode _currentThemeMode;
   late String _currentLanguageCode;
+  late final ConnectivityStatusService _connectivityStatusService;
 
   @override
   void initState() {
     super.initState();
     _currentThemeMode = widget.themeMode;
     _currentLanguageCode = widget.locale.languageCode;
+    _connectivityStatusService = serviceLocator<ConnectivityStatusService>();
   }
 
   @override
@@ -81,6 +85,42 @@ class _GlobalTopBarState extends State<GlobalTopBar> {
         ],
       ),
       actions: [
+        ValueListenableBuilder<bool>(
+          valueListenable: _connectivityStatusService.isOnline,
+          builder: (context, isOnline, _) {
+            if (isOnline) {
+              return const SizedBox.shrink();
+            }
+
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.wifi_off_rounded,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      l10n.offlineStatusLabel,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
         IconButton(
           tooltip: _themeTooltip(l10n, _currentThemeMode),
           onPressed: () {

@@ -3,6 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/widgets/global_top_bar.dart';
+import '../../../../core/widgets/space_scene_background.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/data/auth_service.dart';
 
@@ -65,11 +66,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final primaryTextColor = colorScheme.onSurface;
     final secondaryTextColor = colorScheme.onSurfaceVariant;
     final cardColor = isDark
-      ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.9)
-      : colorScheme.surface;
+        ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.9)
+        : colorScheme.surface;
     final cardBorderColor = isDark
-      ? AppPalette.borderMuted.withValues(alpha: 0.6)
-      : AppPalette.borderMuted.withValues(alpha: 0.32);
+        ? AppPalette.borderMuted.withValues(alpha: 0.6)
+        : AppPalette.borderMuted.withValues(alpha: 0.32);
     final user = widget.authService.currentUser;
     final providerIds = user?.providerData
             .map((provider) => provider.providerId)
@@ -85,16 +86,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         onLocaleChanged: widget.onLocaleChanged,
         onThemeModeChanged: _handleThemeModeChanged,
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isDark
-                ? AppPalette.homeDarkGradient
-                : AppPalette.homeLightGradient,
-          ),
-        ),
+      body: SpaceSceneBackground(
+        isDark: isDark,
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
@@ -218,8 +211,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       value: user == null
                           ? null
                           : (user.emailVerified
-                                ? l10n.profileYesValue
-                                : l10n.profileNoValue),
+                              ? l10n.profileYesValue
+                              : l10n.profileNoValue),
                       fallback: l10n.profileNotAvailable,
                       labelColor: secondaryTextColor,
                       valueColor: primaryTextColor,

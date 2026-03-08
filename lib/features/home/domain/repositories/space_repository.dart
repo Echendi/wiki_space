@@ -1,7 +1,7 @@
-import '../entities/space_article.dart';
+import '../entities/space_articles_result.dart';
 
 abstract class SpaceRepository {
-  Future<List<SpaceArticle>> getSpaceArticles(
+  Future<SpaceArticlesResult> getSpaceArticles(
     String languageCode, {
     String query,
     int limit,

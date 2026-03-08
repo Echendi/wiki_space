@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/router/app_routes.dart';
-import '../../../../core/theme/app_palette.dart';
 import '../../../../core/widgets/global_top_bar.dart';
+import '../../../../core/widgets/space_scene_background.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/data/auth_service.dart';
 import '../cubit/home_cubit.dart';
@@ -76,16 +76,8 @@ class _HomeScreenState extends State<HomeScreen> {
         onLocaleChanged: widget.onLocaleChanged,
         onThemeModeChanged: widget.onThemeModeChanged,
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isDark
-                ? AppPalette.homeDarkGradient
-                : AppPalette.homeLightGradient,
-          ),
-        ),
+      body: SpaceSceneBackground(
+        isDark: isDark,
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
@@ -113,6 +105,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                 _submitSearch(homeCubit, languageCode),
                             isDark: isDark,
                           ),
+                          HomeConnectivityBanner(
+                            isDark: isDark,
+                            isOfflineMode: state.isOfflineMode,
+                            showReconnectAction: state.showReconnectAction,
+                            offlineMessage: l10n.homeOfflineBanner,
+                            reconnectMessage: l10n.homeReconnectBanner,
+                            syncLabel: l10n.homeSyncAction,
+                            onSync: () => homeCubit.load(languageCode,
+                                query: state.query),
+                          ),
                           const SizedBox(height: 12),
                           Expanded(
                             child: HomeLoadingView(
@@ -124,6 +126,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     case HomeStatus.failure:
                       final isEmpty = state.errorMessage == 'empty-results';
+                      final isOfflineNoCache =
+                          state.errorMessage == 'offline-no-cache';
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -138,13 +142,25 @@ class _HomeScreenState extends State<HomeScreen> {
                                 _submitSearch(homeCubit, languageCode),
                             isDark: isDark,
                           ),
+                          HomeConnectivityBanner(
+                            isDark: isDark,
+                            isOfflineMode: state.isOfflineMode,
+                            showReconnectAction: state.showReconnectAction,
+                            offlineMessage: l10n.homeOfflineBanner,
+                            reconnectMessage: l10n.homeReconnectBanner,
+                            syncLabel: l10n.homeSyncAction,
+                            onSync: () => homeCubit.load(languageCode,
+                                query: state.query),
+                          ),
                           const SizedBox(height: 12),
                           Expanded(
                             child: HomeErrorView(
                               isDark: isDark,
-                              message: isEmpty
-                                  ? l10n.homeEmptyResults
-                                  : l10n.homeLoadError,
+                              message: isOfflineNoCache
+                                  ? l10n.homeOfflineNoCache
+                                  : (isEmpty
+                                      ? l10n.homeEmptyResults
+                                      : l10n.homeLoadError),
                               retryLabel: l10n.homeRetry,
                               onRetry: () => homeCubit.load(languageCode),
                             ),
@@ -163,6 +179,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             _submitSearch(homeCubit, languageCode),
                         onRetryLoad: () => homeCubit.load(languageCode),
                         onLoadMore: () => homeCubit.loadMore(languageCode),
+                        showOfflineBanner: state.isOfflineMode,
+                        showReconnectAction: state.showReconnectAction,
+                        offlineMessage: l10n.homeOfflineBanner,
+                        reconnectMessage: l10n.homeReconnectBanner,
+                        syncLabel: l10n.homeSyncAction,
+                        onSync: () =>
+                            homeCubit.load(languageCode, query: state.query),
                         onOpenDetail: (articleId) {
                           final encoded = Uri.encodeQueryComponent(articleId);
                           context.push('${AppRoutes.detail}?id=$encoded');

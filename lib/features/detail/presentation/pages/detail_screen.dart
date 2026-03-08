@@ -9,13 +9,14 @@ import '../../../../core/di/service_locator.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/global_top_bar.dart';
+import '../../../../core/widgets/space_scene_background.dart';
 import '../../../../features/auth/presentation/widgets/space_logo.dart';
 import '../../../../features/home/presentation/widgets/home_carousel_content.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../cubit/detail_cubit.dart';
 import '../cubit/detail_state.dart';
 
-class DetailScreen extends StatelessWidget {
+class DetailScreen extends StatefulWidget {
   const DetailScreen({
     super.key,
     required this.articleId,
@@ -32,6 +33,53 @@ class DetailScreen extends StatelessWidget {
   final ValueChanged<ThemeMode> onThemeModeChanged;
 
   @override
+  State<DetailScreen> createState() => _DetailScreenState();
+}
+
+class _DetailScreenState extends State<DetailScreen> {
+  late final DetailCubit _detailCubit;
+  late String _articleLanguageCode;
+  String? _loadedArticleId;
+
+  @override
+  void initState() {
+    super.initState();
+    _detailCubit = serviceLocator<DetailCubit>();
+    _articleLanguageCode = widget.locale.languageCode;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadIfNeeded();
+  }
+
+  @override
+  void didUpdateWidget(covariant DetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.articleId != widget.articleId) {
+      // New detail target: pin language at navigation moment.
+      _articleLanguageCode = widget.locale.languageCode;
+      _loadIfNeeded(force: true);
+    }
+  }
+
+  void _loadIfNeeded({bool force = false}) {
+    if (!force && _loadedArticleId == widget.articleId) {
+      return;
+    }
+
+    _loadedArticleId = widget.articleId;
+    _detailCubit.load(widget.articleId, _articleLanguageCode);
+  }
+
+  @override
+  void dispose() {
+    _detailCubit.close();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final languageCode = Localizations.localeOf(context).languageCode;
@@ -39,15 +87,14 @@ class DetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: GlobalTopBar(
-        locale: locale,
-        themeMode: themeMode,
-        onLocaleChanged: onLocaleChanged,
-        onThemeModeChanged: onThemeModeChanged,
+        locale: widget.locale,
+        themeMode: widget.themeMode,
+        onLocaleChanged: widget.onLocaleChanged,
+        onThemeModeChanged: widget.onThemeModeChanged,
         showBackButton: true,
       ),
-      body: BlocProvider(
-        create: (_) =>
-            serviceLocator<DetailCubit>()..load(articleId, languageCode),
+      body: BlocProvider.value(
+        value: _detailCubit,
         child: BlocBuilder<DetailCubit, DetailState>(
           builder: (context, state) {
             switch (state.status) {
@@ -64,10 +111,11 @@ class DetailScreen extends StatelessWidget {
                   ),
                 );
               case DetailStatus.failure:
-                final isSpanish = languageCode == 'es';
-                final message = isSpanish
-                    ? 'No fue posible cargar el detalle del articulo.'
-                    : 'Could not load article detail.';
+                final isOfflineNoCache =
+                    state.errorMessage == 'detail-offline-no-cache';
+                final message = isOfflineNoCache
+                    ? l10n.detailOfflineNoCache
+                    : l10n.detailLoadError;
                 final retryLabel = l10n.homeRetry;
 
                 return Center(
@@ -93,7 +141,7 @@ class DetailScreen extends StatelessWidget {
                         FilledButton.tonal(
                           onPressed: () => context
                               .read<DetailCubit>()
-                              .load(articleId, languageCode),
+                              .load(widget.articleId, _articleLanguageCode),
                           child: Text(retryLabel),
                         ),
                       ],
@@ -106,7 +154,8 @@ class DetailScreen extends StatelessWidget {
                   return const SizedBox.shrink();
                 }
 
-                final title = detail.title.isEmpty ? articleId : detail.title;
+                final title =
+                    detail.title.isEmpty ? widget.articleId : detail.title;
                 final summary = detail.summary.trim().isEmpty
                     ? l10n.homeSummaryFallback
                     : detail.summary.trim();
@@ -128,16 +177,8 @@ class DetailScreen extends StatelessWidget {
                 final metricArticleIdValue =
                     detail.articleId > 0 ? detail.articleId.toString() : '--';
 
-                return Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: isDark
-                          ? AppPalette.homeDarkGradient
-                          : AppPalette.homeLightGradient,
-                    ),
-                  ),
+                return SpaceSceneBackground(
+                  isDark: isDark,
                   child: SafeArea(
                     child: CustomScrollView(
                       physics: const BouncingScrollPhysics(),
@@ -149,7 +190,7 @@ class DetailScreen extends StatelessWidget {
                               title: title,
                               imageUrl: detail.imageUrl,
                               fallbackLabel: l10n.homeImageUnavailable,
-                              heroTag: detailHeroTag(articleId),
+                              heroTag: detailHeroTag(widget.articleId),
                               isDark: isDark,
                             ),
                           ),

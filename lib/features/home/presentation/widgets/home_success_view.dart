@@ -5,6 +5,7 @@ import '../../../../l10n/generated/app_localizations.dart';
 import '../cubit/home_state.dart';
 import 'home_articles_sliver_grid.dart';
 import 'home_carousel_content.dart';
+import 'home_feedback_views.dart';
 import 'home_feed_header_sliver.dart';
 import 'home_header.dart';
 import 'home_load_more_sliver.dart';
@@ -23,6 +24,12 @@ class HomeSuccessView extends StatelessWidget {
     required this.onRetryLoad,
     required this.onLoadMore,
     required this.onOpenDetail,
+    required this.showOfflineBanner,
+    required this.showReconnectAction,
+    required this.offlineMessage,
+    required this.reconnectMessage,
+    required this.syncLabel,
+    required this.onSync,
   });
 
   final HomeState state;
@@ -35,6 +42,12 @@ class HomeSuccessView extends StatelessWidget {
   final VoidCallback onRetryLoad;
   final VoidCallback onLoadMore;
   final void Function(String articleId) onOpenDetail;
+  final bool showOfflineBanner;
+  final bool showReconnectAction;
+  final String offlineMessage;
+  final String reconnectMessage;
+  final String syncLabel;
+  final VoidCallback onSync;
 
   @override
   Widget build(BuildContext context) {
@@ -69,20 +82,30 @@ class HomeSuccessView extends StatelessWidget {
               onSearchTap: onSearchSubmitted,
               isDark: isDark,
             ),
+            HomeConnectivityBanner(
+              isDark: isDark,
+              isOfflineMode: showOfflineBanner,
+              showReconnectAction: showReconnectAction,
+              offlineMessage: offlineMessage,
+              reconnectMessage: reconnectMessage,
+              syncLabel: syncLabel,
+              onSync: onSync,
+            ),
             const SizedBox(height: 10),
             Expanded(
               child: NotificationListener<ScrollNotification>(
                 onNotification: (notification) {
                   final isVertical = notification.metrics.axis == Axis.vertical;
-                  final isUserScrollEnd =
-                      notification is ScrollEndNotification &&
-                          notification.dragDetails != null;
+                  final shouldEvaluate =
+                      notification is ScrollUpdateNotification ||
+                          notification is ScrollEndNotification ||
+                          notification is OverscrollNotification;
                   final hasScrollableExtent =
                       notification.metrics.maxScrollExtent > 0;
-                  final nearBottom = notification.metrics.extentAfter < 320;
+                  final nearBottom = notification.metrics.extentAfter < 520;
 
                   if (isVertical &&
-                      isUserScrollEnd &&
+                      shouldEvaluate &&
                       hasScrollableExtent &&
                       nearBottom) {
                     onLoadMore();

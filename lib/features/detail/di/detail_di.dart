@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 
+import '../data/datasources/article_detail_local_data_source.dart';
 import '../data/datasources/article_detail_remote_data_source.dart';
 import '../data/repositories/article_detail_repository_impl.dart';
 import '../domain/repositories/article_detail_repository.dart';
@@ -13,9 +14,25 @@ void registerDetailDependencies(GetIt serviceLocator) {
     );
   }
 
+  if (!serviceLocator.isRegistered<ArticleDetailCacheDatabase>()) {
+    serviceLocator.registerLazySingleton<ArticleDetailCacheDatabase>(
+      ArticleDetailCacheDatabase.new,
+    );
+  }
+
+  if (!serviceLocator.isRegistered<ArticleDetailLocalDataSource>()) {
+    serviceLocator.registerLazySingleton<ArticleDetailLocalDataSource>(
+      () => ArticleDetailLocalDataSourceImpl(serviceLocator()),
+    );
+  }
+
   if (!serviceLocator.isRegistered<ArticleDetailRepository>()) {
     serviceLocator.registerLazySingleton<ArticleDetailRepository>(
-      () => ArticleDetailRepositoryImpl(serviceLocator()),
+      () => ArticleDetailRepositoryImpl(
+        serviceLocator(),
+        serviceLocator(),
+        serviceLocator(),
+      ),
     );
   }
 
@@ -29,6 +46,7 @@ void registerDetailDependencies(GetIt serviceLocator) {
     serviceLocator.unregister<DetailCubit>();
   }
 
-  serviceLocator
-      .registerFactory<DetailCubit>(() => DetailCubit(serviceLocator()));
+  serviceLocator.registerFactory<DetailCubit>(
+    () => DetailCubit(serviceLocator(), serviceLocator()),
+  );
 }

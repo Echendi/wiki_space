@@ -27,6 +27,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get englishOption => 'Inglés';
 
   @override
+  String get offlineStatusLabel => 'Offline';
+
+  @override
   String get themeSystemLabel => 'Sistema';
 
   @override
@@ -171,6 +174,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get detailTitle => 'Detalle';
 
   @override
+  String get detailLoadError =>
+      'No fue posible cargar el detalle del artículo.';
+
+  @override
+  String get detailOfflineNoCache =>
+      'No hay conexión y este artículo no está cacheado.';
+
+  @override
   String get articleIdLabel => 'ID del artículo';
 
   @override
@@ -272,6 +283,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get homeLoadError => 'No fue posible cargar los recursos del espacio.';
+
+  @override
+  String get homeOfflineNoCache =>
+      'No hay conexión y no existen datos guardados en este dispositivo.';
+
+  @override
+  String get homeOfflineBanner =>
+      'Estás sin conexión. Mostrando datos guardados.';
+
+  @override
+  String get homeReconnectBanner =>
+      'Conexión restablecida. Puedes sincronizar los datos.';
+
+  @override
+  String get homeSyncAction => 'Sincronizar';
 
   @override
   String get homeEmptyResults =>

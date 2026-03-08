@@ -134,6 +134,12 @@ abstract class AppLocalizations {
   /// **'Inglés'**
   String get englishOption;
 
+  /// No description provided for @offlineStatusLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Offline'**
+  String get offlineStatusLabel;
+
   /// No description provided for @themeSystemLabel.
   ///
   /// In es, this message translates to:
@@ -392,6 +398,18 @@ abstract class AppLocalizations {
   /// **'Detalle'**
   String get detailTitle;
 
+  /// No description provided for @detailLoadError.
+  ///
+  /// In es, this message translates to:
+  /// **'No fue posible cargar el detalle del artículo.'**
+  String get detailLoadError;
+
+  /// No description provided for @detailOfflineNoCache.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay conexión y este artículo no está cacheado.'**
+  String get detailOfflineNoCache;
+
   /// No description provided for @articleIdLabel.
   ///
   /// In es, this message translates to:
@@ -583,6 +601,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No fue posible cargar los recursos del espacio.'**
   String get homeLoadError;
+
+  /// No description provided for @homeOfflineNoCache.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay conexión y no existen datos guardados en este dispositivo.'**
+  String get homeOfflineNoCache;
+
+  /// No description provided for @homeOfflineBanner.
+  ///
+  /// In es, this message translates to:
+  /// **'Estás sin conexión. Mostrando datos guardados.'**
+  String get homeOfflineBanner;
+
+  /// No description provided for @homeReconnectBanner.
+  ///
+  /// In es, this message translates to:
+  /// **'Conexión restablecida. Puedes sincronizar los datos.'**
+  String get homeReconnectBanner;
+
+  /// No description provided for @homeSyncAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizar'**
+  String get homeSyncAction;
 
   /// No description provided for @homeEmptyResults.
   ///

@@ -1,4 +1,4 @@
-import '../entities/space_article.dart';
+import '../entities/space_articles_result.dart';
 import '../repositories/space_repository.dart';
 
 class GetSpaceArticlesUseCase {
@@ -6,10 +6,10 @@ class GetSpaceArticlesUseCase {
 
   final SpaceRepository _repository;
 
-  Future<List<SpaceArticle>> call(
+  Future<SpaceArticlesResult> call(
     String languageCode, {
     String query = '',
-    int limit = 24,
+    int limit = 5,
     int offset = 0,
   }) {
     return _repository.getSpaceArticles(

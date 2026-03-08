@@ -27,6 +27,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get englishOption => 'English';
 
   @override
+  String get offlineStatusLabel => 'Offline';
+
+  @override
   String get themeSystemLabel => 'System';
 
   @override
@@ -168,6 +171,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detailTitle => 'Detail';
 
   @override
+  String get detailLoadError => 'Could not load article detail.';
+
+  @override
+  String get detailOfflineNoCache =>
+      'No connection and this article is not cached yet.';
+
+  @override
   String get articleIdLabel => 'Article ID';
 
   @override
@@ -268,6 +278,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeLoadError => 'Could not load space resources.';
+
+  @override
+  String get homeOfflineNoCache =>
+      'No connection and there is no saved data on this device.';
+
+  @override
+  String get homeOfflineBanner => 'You are offline. Showing saved data.';
+
+  @override
+  String get homeReconnectBanner =>
+      'Connection restored. You can sync data now.';
+
+  @override
+  String get homeSyncAction => 'Sync';
 
   @override
   String get homeEmptyResults =>
