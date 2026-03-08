@@ -223,6 +223,27 @@ class _LoginScreenState extends State<LoginScreen> {
     return null;
   }
 
+  List<_PasswordRule> _passwordRules(AppLocalizations l10n, String password) {
+    return [
+      _PasswordRule(
+        label: l10n.passwordLengthError,
+        passed: password.length >= 8,
+      ),
+      _PasswordRule(
+        label: l10n.passwordUppercaseError,
+        passed: RegExp(r'[A-Z]').hasMatch(password),
+      ),
+      _PasswordRule(
+        label: l10n.passwordNumberError,
+        passed: RegExp(r'[0-9]').hasMatch(password),
+      ),
+      _PasswordRule(
+        label: l10n.passwordSpecialError,
+        passed: RegExp(r'[^A-Za-z0-9]').hasMatch(password),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -238,186 +259,212 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Stack(
         children: [
           const _SpaceBackground(),
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 440),
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: (isDark
-                              ? AppPalette.surfaceDark
-                              : AppPalette.surfaceLight)
-                          .withValues(alpha: 0.9),
-                      borderRadius: BorderRadius.circular(28),
-                      border: Border.all(
-                        color: AppPalette.accent.withValues(alpha: 0.28),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .shadow
-                              .withValues(alpha: 0.25),
-                          blurRadius: 24,
-                          offset: const Offset(0, 14),
-                        ),
-                      ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxHeight < 760;
+              final horizontalPadding = isCompact ? 16.0 : 24.0;
+              final verticalPadding = isCompact ? 12.0 : 20.0;
+
+              return SafeArea(
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                      vertical: verticalPadding,
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 30, 24, 24),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const SpaceLogo(),
-                            const SizedBox(height: 16),
-                            Text(
-                              l10n.loginTitle,
-                              textAlign: TextAlign.center,
-                              style: AppTextStyles.screenTitle(isDark),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 440),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: (isDark
+                                  ? AppPalette.surfaceDark
+                                  : AppPalette.surfaceLight)
+                              .withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: AppPalette.accent.withValues(alpha: 0.28),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .shadow
+                                  .withValues(alpha: 0.25),
+                              blurRadius: 24,
+                              offset: const Offset(0, 14),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              l10n.loginSubtitle,
-                              textAlign: TextAlign.center,
-                              style: AppTextStyles.subtitle(isDark)
-                                  .copyWith(fontSize: 15),
-                            ),
-                            const SizedBox(height: 22),
-                            _ThemedField(
-                              controller: _emailController,
-                              label: l10n.emailLabel,
-                              icon: Icons.alternate_email_rounded,
-                              keyboardType: TextInputType.emailAddress,
-                              validator: _validateEmail,
-                              textInputAction: TextInputAction.next,
-                            ),
-                            const SizedBox(height: 14),
-                            _ThemedField(
-                              controller: _passwordController,
-                              label: l10n.passwordLabel,
-                              icon: Icons.lock_outline_rounded,
-                              validator: _validatePassword,
-                              obscureText: _obscurePassword,
-                              textInputAction: TextInputAction.done,
-                              onFieldSubmitted: (_) => _submit(),
-                              suffixIcon: IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _obscurePassword = !_obscurePassword;
-                                  });
-                                },
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_rounded
-                                      : Icons.visibility_off_rounded,
-                                  color: isDark
-                                      ? AppPalette.onDarkMuted
-                                      : AppPalette.onPrimary
-                                          .withValues(alpha: 0.72),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              l10n.passwordRules,
-                              style: AppTextStyles.caption(isDark),
-                            ),
-                            const SizedBox(height: 20),
-                            SizedBox(
-                              height: 54,
-                              child: ElevatedButton(
-                                onPressed: _isAnyLoading ? null : _submit,
-                                style: ElevatedButton.styleFrom(
-                                  elevation: 0,
-                                  backgroundColor: AppPalette.primary,
-                                  foregroundColor: AppPalette.onPrimary,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                ),
-                                child: _isLoading
-                                    ? const SizedBox(
-                                        width: 22,
-                                        height: 22,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2.5,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                            AppPalette.onPrimary,
-                                          ),
-                                        ),
-                                      )
-                                    : Text(
-                                        l10n.loginButton,
-                                        style: AppTextStyles.primaryCta(),
-                                      ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
+                          ],
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            isCompact ? 16 : 24,
+                            isCompact ? 18 : 30,
+                            isCompact ? 16 : 24,
+                            isCompact ? 16 : 24,
+                          ),
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                Expanded(
-                                  child: Divider(
-                                    color: AppPalette.accent
-                                        .withValues(alpha: 0.35),
+                                AuthFormHeader(
+                                  title: l10n.loginTitle,
+                                  subtitle: l10n.loginSubtitle,
+                                  isDark: isDark,
+                                  compact: isCompact,
+                                ),
+                                SizedBox(height: isCompact ? 14 : 22),
+                                _ThemedField(
+                                  controller: _emailController,
+                                  label: l10n.emailLabel,
+                                  icon: Icons.alternate_email_rounded,
+                                  keyboardType: TextInputType.emailAddress,
+                                  validator: _validateEmail,
+                                  textInputAction: TextInputAction.next,
+                                  isCompact: isCompact,
+                                ),
+                                SizedBox(height: isCompact ? 10 : 14),
+                                _ThemedField(
+                                  controller: _passwordController,
+                                  label: l10n.passwordLabel,
+                                  icon: Icons.lock_outline_rounded,
+                                  validator: _validatePassword,
+                                  obscureText: _obscurePassword,
+                                  textInputAction: TextInputAction.done,
+                                  onFieldSubmitted: (_) => _submit(),
+                                  isCompact: isCompact,
+                                  suffixIcon: IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscurePassword = !_obscurePassword;
+                                      });
+                                    },
+                                    icon: Icon(
+                                      _obscurePassword
+                                          ? Icons.visibility_rounded
+                                          : Icons.visibility_off_rounded,
+                                      color: isDark
+                                          ? AppPalette.onDarkMuted
+                                          : AppPalette.onPrimary
+                                              .withValues(alpha: 0.72),
+                                    ),
                                   ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10),
-                                  child: Text(
-                                    l10n.continueWith,
-                                    style: AppTextStyles.overline(isDark),
+                                SizedBox(height: isCompact ? 6 : 10),
+                                _PasswordChecks(
+                                  controller: _passwordController,
+                                  isDark: isDark,
+                                  rulesBuilder: (password) =>
+                                      _passwordRules(l10n, password),
+                                ),
+                                SizedBox(height: isCompact ? 14 : 20),
+                                SizedBox(
+                                  height: isCompact ? 48 : 54,
+                                  child: ElevatedButton(
+                                    onPressed: _isAnyLoading ? null : _submit,
+                                    style: ElevatedButton.styleFrom(
+                                      elevation: 0,
+                                      backgroundColor: AppPalette.primary,
+                                      foregroundColor: AppPalette.onPrimary,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                    ),
+                                    child: _isLoading
+                                        ? const SizedBox(
+                                            width: 22,
+                                            height: 22,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2.5,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                AppPalette.onPrimary,
+                                              ),
+                                            ),
+                                          )
+                                        : Text(
+                                            l10n.loginButton,
+                                            style: AppTextStyles.primaryCta(),
+                                          ),
                                   ),
                                 ),
-                                Expanded(
-                                  child: Divider(
-                                    color: AppPalette.accent
-                                        .withValues(alpha: 0.35),
-                                  ),
+                                SizedBox(height: isCompact ? 10 : 16),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Divider(
+                                        color: AppPalette.accent
+                                            .withValues(alpha: 0.35),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                      ),
+                                      child: Text(
+                                        l10n.continueWith,
+                                        style: AppTextStyles.overline(isDark),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Divider(
+                                        color: AppPalette.accent
+                                            .withValues(alpha: 0.35),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: isCompact ? 10 : 14),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _SocialIconButton(
+                                        semanticLabel: l10n.continueWithGoogle,
+                                        iconText: 'G',
+                                        iconBackground:
+                                            AppPalette.googleBadgeBackground,
+                                        iconColor:
+                                            AppPalette.googleBadgeForeground,
+                                        onPressed: _isAnyLoading
+                                            ? null
+                                            : _signInWithGoogle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: _SocialIconButton(
+                                        semanticLabel:
+                                            l10n.continueWithFacebook,
+                                        iconText: 'f',
+                                        iconBackground:
+                                            AppPalette.facebookBadgeBackground,
+                                        iconColor:
+                                            AppPalette.facebookBadgeForeground,
+                                        onPressed: _isAnyLoading
+                                            ? null
+                                            : _signInWithFacebook,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: isCompact ? 10 : 14),
+                                TextButton(
+                                  onPressed: _isAnyLoading
+                                      ? null
+                                      : () => context.push(AppRoutes.register),
+                                  child: Text(l10n.goToRegisterButton),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 14),
-                            _SocialButton(
-                              label: l10n.continueWithGoogle,
-                              iconText: 'G',
-                              iconBackground: AppPalette.googleBadgeBackground,
-                              iconColor: AppPalette.googleBadgeForeground,
-                              onPressed:
-                                  _isAnyLoading ? null : _signInWithGoogle,
-                            ),
-                            const SizedBox(height: 10),
-                            _SocialButton(
-                              label: l10n.continueWithFacebook,
-                              iconText: 'f',
-                              iconBackground:
-                                  AppPalette.facebookBadgeBackground,
-                              iconColor: AppPalette.facebookBadgeForeground,
-                              onPressed:
-                                  _isAnyLoading ? null : _signInWithFacebook,
-                            ),
-                            const SizedBox(height: 14),
-                            TextButton(
-                              onPressed: _isAnyLoading
-                                  ? null
-                                  : () => context.push(AppRoutes.register),
-                              child: Text(l10n.goToRegisterButton),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ],
       ),
@@ -425,16 +472,16 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-class _SocialButton extends StatelessWidget {
-  const _SocialButton({
-    required this.label,
+class _SocialIconButton extends StatelessWidget {
+  const _SocialIconButton({
+    required this.semanticLabel,
     required this.iconText,
     required this.iconBackground,
     required this.iconColor,
     required this.onPressed,
   });
 
-  final String label;
+  final String semanticLabel;
   final String iconText;
   final Color iconBackground;
   final Color iconColor;
@@ -443,43 +490,38 @@ class _SocialButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return SizedBox(
-      height: 52,
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(
-            color: AppPalette.accent.withValues(alpha: 0.35),
-          ),
-          backgroundColor:
-              (isDark ? AppPalette.surfaceDarkAlt : AppPalette.surfaceLightAlt)
-                  .withValues(alpha: isDark ? 0.72 : 0.9),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 26,
-              height: 26,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: iconBackground,
-                shape: BoxShape.circle,
-              ),
-              child: Text(
-                iconText,
-                style: AppTextStyles.socialBadgeGlyph(iconColor),
-              ),
+
+    return Tooltip(
+      message: semanticLabel,
+      child: SizedBox(
+        height: 48,
+        child: OutlinedButton(
+          onPressed: onPressed,
+          style: OutlinedButton.styleFrom(
+            side: BorderSide(
+              color: AppPalette.accent.withValues(alpha: 0.35),
             ),
-            const SizedBox(width: 10),
-            Text(
-              label,
-              style: AppTextStyles.buttonLabel(isDark),
+            backgroundColor: (isDark
+                    ? AppPalette.surfaceDarkAlt
+                    : AppPalette.surfaceLightAlt)
+                .withValues(alpha: isDark ? 0.72 : 0.9),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
             ),
-          ],
+          ),
+          child: Container(
+            width: 28,
+            height: 28,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: iconBackground,
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              iconText,
+              style: AppTextStyles.socialBadgeGlyph(iconColor),
+            ),
+          ),
         ),
       ),
     );
@@ -492,6 +534,7 @@ class _ThemedField extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.validator,
+    required this.isCompact,
     this.keyboardType,
     this.obscureText = false,
     this.textInputAction,
@@ -503,6 +546,7 @@ class _ThemedField extends StatelessWidget {
   final String label;
   final IconData icon;
   final String? Function(String?) validator;
+  final bool isCompact;
   final TextInputType? keyboardType;
   final bool obscureText;
   final TextInputAction? textInputAction;
@@ -521,9 +565,18 @@ class _ThemedField extends StatelessWidget {
       onFieldSubmitted: onFieldSubmitted,
       style: AppTextStyles.inputText(isDark),
       decoration: InputDecoration(
+        isDense: isCompact,
+        contentPadding: EdgeInsets.symmetric(
+          vertical: isCompact ? 12 : 16,
+          horizontal: isCompact ? 12 : 14,
+        ),
         labelText: label,
         labelStyle: AppTextStyles.inputLabel(isDark),
-        prefixIcon: Icon(icon, color: AppPalette.accent),
+        prefixIcon: Icon(
+          icon,
+          color: AppPalette.accent,
+          size: isCompact ? 20 : 24,
+        ),
         suffixIcon: suffixIcon,
         filled: true,
         fillColor:
@@ -535,6 +588,70 @@ class _ThemedField extends StatelessWidget {
         ),
         errorStyle: AppTextStyles.errorStyle(),
       ),
+    );
+  }
+}
+
+class _PasswordRule {
+  const _PasswordRule({
+    required this.label,
+    required this.passed,
+  });
+
+  final String label;
+  final bool passed;
+}
+
+class _PasswordChecks extends StatelessWidget {
+  const _PasswordChecks({
+    required this.controller,
+    required this.isDark,
+    required this.rulesBuilder,
+  });
+
+  final TextEditingController controller;
+  final bool isDark;
+  final List<_PasswordRule> Function(String password) rulesBuilder;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: controller,
+      builder: (context, value, _) {
+        final rules = rulesBuilder(value.text);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final rule in rules)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      rule.passed
+                          ? Icons.check_circle_rounded
+                          : Icons.radio_button_unchecked_rounded,
+                      size: 16,
+                      color: rule.passed
+                          ? Colors.green
+                          : (isDark
+                              ? AppPalette.onDarkMuted
+                              : AppPalette.onPrimary.withValues(alpha: 0.6)),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        rule.label,
+                        style: AppTextStyles.caption(isDark),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

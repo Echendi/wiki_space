@@ -149,13 +149,13 @@ abstract class AppLocalizations {
   /// No description provided for @themeLightLabel.
   ///
   /// In es, this message translates to:
-  /// **'Tema claro'**
+  /// **'Claro'**
   String get themeLightLabel;
 
   /// No description provided for @themeDarkLabel.
   ///
   /// In es, this message translates to:
-  /// **'Tema oscuro'**
+  /// **'Oscuro'**
   String get themeDarkLabel;
 
   /// No description provided for @genericUser.
@@ -398,6 +398,18 @@ abstract class AppLocalizations {
   /// **'No se pudo completar el registro.'**
   String get registerError;
 
+  /// No description provided for @registerNameRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'El nombre es obligatorio.'**
+  String get registerNameRequired;
+
+  /// No description provided for @optionalLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'opcional'**
+  String get optionalLabel;
+
   /// No description provided for @confirmPasswordLabel.
   ///
   /// In es, this message translates to:
@@ -475,6 +487,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Teléfono'**
   String get profilePhoneLabel;
+
+  /// No description provided for @profileLastConnectionLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Última conexión'**
+  String get profileLastConnectionLabel;
 
   /// No description provided for @profileProvidersLabel.
   ///

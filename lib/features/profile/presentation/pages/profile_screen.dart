@@ -58,6 +58,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     widget.onThemeModeChanged(selectedMode);
   }
 
+  String? _formatLastConnection(BuildContext context, DateTime? dateTime) {
+    if (dateTime == null) {
+      return null;
+    }
+
+    final local = dateTime.toLocal();
+    final material = MaterialLocalizations.of(context);
+    final dateText = material.formatShortDate(local);
+    final timeText = material.formatTimeOfDay(
+      TimeOfDay.fromDateTime(local),
+    );
+    return '$dateText $timeText';
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -89,7 +103,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: SpaceSceneBackground(
         isDark: isDark,
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            20,
+            20,
+            20 +
+                MediaQuery.of(context).padding.bottom +
+                kBottomNavigationBarHeight,
+          ),
           children: [
             Text(
               l10n.profileTitle,
@@ -118,32 +139,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                     ),
                     const SizedBox(height: 12),
-                    SegmentedButton<ThemeMode>(
-                      segments: [
-                        ButtonSegment(
-                          value: ThemeMode.system,
-                          label: Text(l10n.themeSystemLabel),
-                          icon: const Icon(Icons.brightness_auto_rounded),
-                        ),
-                        ButtonSegment(
-                          value: ThemeMode.light,
-                          label: Text(l10n.themeLightLabel),
-                          icon: const Icon(Icons.light_mode_rounded),
-                        ),
-                        ButtonSegment(
-                          value: ThemeMode.dark,
-                          label: Text(l10n.themeDarkLabel),
-                          icon: const Icon(Icons.dark_mode_rounded),
-                        ),
-                      ],
-                      selected: {_selectedThemeMode},
-                      onSelectionChanged: (selection) {
-                        final selectedMode =
-                            selection.isEmpty ? null : selection.first;
-                        if (selectedMode != null) {
-                          _handleThemeModeChanged(selectedMode);
-                        }
-                      },
+                    SizedBox(
+                      width: double.infinity,
+                      child: SegmentedButton<ThemeMode>(
+                        expandedInsets: EdgeInsets.zero,
+                        showSelectedIcon: false,
+                        segments: [
+                          ButtonSegment(
+                            value: ThemeMode.system,
+                            label: _ThemeSegmentLabel(
+                              icon: Icons.brightness_auto_rounded,
+                              text: l10n.themeSystemLabel,
+                              selected: _selectedThemeMode == ThemeMode.system,
+                            ),
+                          ),
+                          ButtonSegment(
+                            value: ThemeMode.light,
+                            label: _ThemeSegmentLabel(
+                              icon: Icons.light_mode_rounded,
+                              text: l10n.themeLightLabel,
+                              selected: _selectedThemeMode == ThemeMode.light,
+                            ),
+                          ),
+                          ButtonSegment(
+                            value: ThemeMode.dark,
+                            label: _ThemeSegmentLabel(
+                              icon: Icons.dark_mode_rounded,
+                              text: l10n.themeDarkLabel,
+                              selected: _selectedThemeMode == ThemeMode.dark,
+                            ),
+                          ),
+                        ],
+                        selected: {_selectedThemeMode},
+                        onSelectionChanged: (selection) {
+                          final selectedMode =
+                              selection.isEmpty ? null : selection.first;
+                          if (selectedMode != null) {
+                            _handleThemeModeChanged(selectedMode);
+                          }
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -185,8 +220,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       valueColor: primaryTextColor,
                     ),
                     _InfoRow(
-                      label: l10n.profilePhoneLabel,
-                      value: user?.phoneNumber,
+                      label: l10n.profileLastConnectionLabel,
+                      value: _formatLastConnection(
+                        context,
+                        user?.metadata.lastSignInTime,
+                      ),
                       fallback: l10n.profileNotAvailable,
                       labelColor: secondaryTextColor,
                       valueColor: primaryTextColor,
@@ -235,13 +273,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      l10n.profileVersionLabel,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: primaryTextColor,
-                          ),
-                    ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 5),
                     FutureBuilder<PackageInfo>(
                       future: _packageInfoFuture,
                       builder: (context, snapshot) {
@@ -369,6 +401,35 @@ class _InfoRow extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ThemeSegmentLabel extends StatelessWidget {
+  const _ThemeSegmentLabel({
+    required this.icon,
+    required this.text,
+    required this.selected,
+  });
+
+  final IconData icon;
+  final String text;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(selected ? Icons.check_rounded : icon, size: 18),
+        const SizedBox(height: 4),
+        Text(
+          text,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.visible,
+        ),
+      ],
     );
   }
 }

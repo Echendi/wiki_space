@@ -33,10 +33,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeSystemLabel => 'System';
 
   @override
-  String get themeLightLabel => 'Light theme';
+  String get themeLightLabel => 'Light';
 
   @override
-  String get themeDarkLabel => 'Dark theme';
+  String get themeDarkLabel => 'Dark';
 
   @override
   String get genericUser => 'user';
@@ -171,6 +171,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get registerError => 'Could not complete registration.';
 
   @override
+  String get registerNameRequired => 'Name is required.';
+
+  @override
+  String get optionalLabel => 'optional';
+
+  @override
   String get confirmPasswordLabel => 'Confirm password';
 
   @override
@@ -209,6 +215,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profilePhoneLabel => 'Phone';
+
+  @override
+  String get profileLastConnectionLabel => 'Last connection';
 
   @override
   String get profileProvidersLabel => 'Providers';
