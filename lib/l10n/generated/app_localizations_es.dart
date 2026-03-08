@@ -147,6 +147,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get signOutButton => 'Cerrar sesión';
 
   @override
+  String get signOutConfirmTitle => 'Confirmar cierre de sesión';
+
+  @override
+  String get signOutConfirmMessage => '¿Seguro que quieres cerrar sesión?';
+
+  @override
+  String get cancelAction => 'Cancelar';
+
+  @override
   String get loadingLabel => 'Cargando...';
 
   @override
@@ -298,6 +307,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get homeSyncAction => 'Sincronizar';
+
+  @override
+  String get backPressExitHint => 'Presiona atrás nuevamente para salir';
 
   @override
   String get homeEmptyResults =>

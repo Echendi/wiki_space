@@ -6,10 +6,8 @@ import 'package:get_it/get_it.dart';
 
 import '../services/connectivity_status_service.dart';
 import '../../features/auth/di/auth_di.dart';
-import '../../features/catalog/di/catalog_di.dart';
 import '../../features/detail/di/detail_di.dart';
 import '../../features/home/di/home_di.dart';
-import '../../features/profile/di/profile_di.dart';
 
 final GetIt serviceLocator = GetIt.instance;
 
@@ -58,7 +56,5 @@ void _registerCoreDependencies() {
 void _registerFeatureDependencies() {
   registerAuthDependencies(serviceLocator);
   registerHomeDependencies(serviceLocator);
-  registerCatalogDependencies(serviceLocator);
   registerDetailDependencies(serviceLocator);
-  registerProfileDependencies(serviceLocator);
 }

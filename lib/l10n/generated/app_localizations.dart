@@ -344,6 +344,24 @@ abstract class AppLocalizations {
   /// **'Cerrar sesión'**
   String get signOutButton;
 
+  /// No description provided for @signOutConfirmTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Confirmar cierre de sesión'**
+  String get signOutConfirmTitle;
+
+  /// No description provided for @signOutConfirmMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Seguro que quieres cerrar sesión?'**
+  String get signOutConfirmMessage;
+
+  /// No description provided for @cancelAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelar'**
+  String get cancelAction;
+
   /// No description provided for @loadingLabel.
   ///
   /// In es, this message translates to:
@@ -625,6 +643,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Sincronizar'**
   String get homeSyncAction;
+
+  /// No description provided for @backPressExitHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Presiona atrás nuevamente para salir'**
+  String get backPressExitHint;
 
   /// No description provided for @homeEmptyResults.
   ///

@@ -144,6 +144,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signOutButton => 'Sign out';
 
   @override
+  String get signOutConfirmTitle => 'Confirm sign out';
+
+  @override
+  String get signOutConfirmMessage => 'Are you sure you want to sign out?';
+
+  @override
+  String get cancelAction => 'Cancel';
+
+  @override
   String get loadingLabel => 'Loading...';
 
   @override
@@ -292,6 +301,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeSyncAction => 'Sync';
+
+  @override
+  String get backPressExitHint => 'Press back again to exit';
 
   @override
   String get homeEmptyResults =>

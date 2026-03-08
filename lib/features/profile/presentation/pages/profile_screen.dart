@@ -265,18 +265,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 20),
             FilledButton.tonalIcon(
-              onPressed: () async {
-                await widget.authService.signOut();
-                if (!context.mounted) {
-                  return;
-                }
-
-                ScaffoldMessenger.of(context)
-                  ..hideCurrentSnackBar()
-                  ..showSnackBar(
-                    SnackBar(content: Text(l10n.signOutSuccess)),
-                  );
-              },
+              onPressed: () => _confirmAndSignOut(context),
               icon: const Icon(Icons.logout_rounded),
               label: Text(l10n.signOutButton),
             ),
@@ -284,6 +273,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmAndSignOut(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final shouldSignOut = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        final dialogTheme = Theme.of(dialogContext);
+        final colorScheme = dialogTheme.colorScheme;
+
+        return AlertDialog(
+          title: Text(
+            l10n.signOutConfirmTitle,
+            style: dialogTheme.textTheme.titleLarge?.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          content: Text(
+            l10n.signOutConfirmMessage,
+            style: dialogTheme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(l10n.cancelAction),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(l10n.signOutButton),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldSignOut != true) {
+      return;
+    }
+
+    await widget.authService.signOut();
+    if (!context.mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(l10n.signOutSuccess)),
+      );
   }
 }
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/widgets/space_bottom_nav_bar.dart';
@@ -190,21 +191,19 @@ class _MainShellScaffoldState extends State<_MainShellScaffold> {
   static const Duration _exitGap = Duration(seconds: 2);
   DateTime? _lastBackPressedAt;
 
-  Future<bool> _onWillPop(BuildContext context) async {
+  void _handleBackPressed(BuildContext context) {
     final now = DateTime.now();
     final canExit = _lastBackPressedAt != null &&
         now.difference(_lastBackPressedAt!) <= _exitGap;
 
     if (canExit) {
-      return true;
+      SystemNavigator.pop();
+      return;
     }
 
     _lastBackPressedAt = now;
 
-    final languageCode = Localizations.localeOf(context).languageCode;
-    final message = languageCode == 'es'
-        ? 'Presiona atras nuevamente para salir'
-        : 'Press back again to exit';
+    final message = AppLocalizations.of(context).backPressExitHint;
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -214,16 +213,20 @@ class _MainShellScaffoldState extends State<_MainShellScaffold> {
           duration: _exitGap,
         ),
       );
-
-    return false;
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
-    return WillPopScope(
-      onWillPop: () => _onWillPop(context),
+    return PopScope<void>(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          return;
+        }
+        _handleBackPressed(context);
+      },
       child: Scaffold(
         extendBody: true,
         body: widget.navigationShell,

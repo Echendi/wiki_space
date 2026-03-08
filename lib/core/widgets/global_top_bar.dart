@@ -135,13 +135,7 @@ class _GlobalTopBarState extends State<GlobalTopBar> {
         Tooltip(
           message: _languageTooltip(l10n, _currentLanguageCode),
           child: TextButton.icon(
-            onPressed: () {
-              final nextLocale = _nextLocale(_currentLanguageCode);
-              setState(() {
-                _currentLanguageCode = nextLocale.languageCode;
-              });
-              widget.onLocaleChanged(nextLocale);
-            },
+            onPressed: () => _showLanguagePickerSheet(context),
             icon: Text(
               _languageFlag(_currentLanguageCode),
               style: const TextStyle(fontSize: 16),
@@ -164,6 +158,53 @@ class _GlobalTopBarState extends State<GlobalTopBar> {
         const SizedBox(width: 6),
       ],
     );
+  }
+
+  Future<void> _showLanguagePickerSheet(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final selectedLocale = await showModalBottomSheet<Locale>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text(
+                  l10n.languageLabel,
+                  style: Theme.of(sheetContext)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+              _SelectionTile(
+                label: '${_languageFlag('es')} ${l10n.spanishOption}',
+                selected: _currentLanguageCode == 'es',
+                onTap: () => Navigator.of(sheetContext).pop(const Locale('es')),
+              ),
+              _SelectionTile(
+                label: '${_languageFlag('en')} ${l10n.englishOption}',
+                selected: _currentLanguageCode == 'en',
+                onTap: () => Navigator.of(sheetContext).pop(const Locale('en')),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (selectedLocale == null ||
+        selectedLocale.languageCode == _currentLanguageCode) {
+      return;
+    }
+
+    setState(() {
+      _currentLanguageCode = selectedLocale.languageCode;
+    });
+    widget.onLocaleChanged(selectedLocale);
   }
 
   ThemeMode _nextThemeMode(ThemeMode currentThemeMode) {
@@ -190,17 +231,37 @@ class _GlobalTopBarState extends State<GlobalTopBar> {
     };
   }
 
-  Locale _nextLocale(String currentLanguageCode) {
-    return currentLanguageCode == 'es'
-        ? const Locale('en')
-        : const Locale('es');
-  }
-
   String _languageFlag(String languageCode) {
     return languageCode == 'es' ? '🇨🇴' : '🇺🇸';
   }
 
   String _languageTooltip(AppLocalizations l10n, String languageCode) {
     return languageCode == 'es' ? l10n.spanishOption : l10n.englishOption;
+  }
+}
+
+class _SelectionTile extends StatelessWidget {
+  const _SelectionTile({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: onTap,
+      title: Text(label),
+      trailing: Icon(
+        selected ? Icons.check_circle_rounded : Icons.circle_outlined,
+        color: selected
+            ? Theme.of(context).colorScheme.primary
+            : Theme.of(context).colorScheme.outline,
+      ),
+    );
   }
 }
