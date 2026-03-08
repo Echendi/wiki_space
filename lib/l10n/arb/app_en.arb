@@ -92,7 +92,7 @@
   "cardStatusTitle": "Status",
   "cardStatusBody": "Flow connected to FirebaseAuth for real authentication.",
   "homeSpaceFeedTitle": "Space Highlights",
-  "homeSpaceFeedSubtitle": "Discover articles and visual resources fetched with the MediaWiki Action API.",
+  "homeSpaceFeedSubtitle": "Discover articles and visual resources.",
   "homeSearchHint": "Search space articles",
   "homeSearchAction": "Search",
   "homeLoading": "Loading space resources...",

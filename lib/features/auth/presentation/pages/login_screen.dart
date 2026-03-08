@@ -421,11 +421,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     Expanded(
                                       child: _SocialIconButton(
                                         semanticLabel: l10n.continueWithGoogle,
-                                        iconText: 'G',
-                                        iconBackground:
-                                            AppPalette.googleBadgeBackground,
-                                        iconColor:
-                                            AppPalette.googleBadgeForeground,
+                                        iconAssetPath:
+                                            'assets/images/google.png',
                                         onPressed: _isAnyLoading
                                             ? null
                                             : _signInWithGoogle,
@@ -436,11 +433,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                       child: _SocialIconButton(
                                         semanticLabel:
                                             l10n.continueWithFacebook,
-                                        iconText: 'f',
-                                        iconBackground:
-                                            AppPalette.facebookBadgeBackground,
-                                        iconColor:
-                                            AppPalette.facebookBadgeForeground,
+                                        iconAssetPath:
+                                            'assets/images/facebook.png',
                                         onPressed: _isAnyLoading
                                             ? null
                                             : _signInWithFacebook,
@@ -475,16 +469,12 @@ class _LoginScreenState extends State<LoginScreen> {
 class _SocialIconButton extends StatelessWidget {
   const _SocialIconButton({
     required this.semanticLabel,
-    required this.iconText,
-    required this.iconBackground,
-    required this.iconColor,
+    required this.iconAssetPath,
     required this.onPressed,
   });
 
   final String semanticLabel;
-  final String iconText;
-  final Color iconBackground;
-  final Color iconColor;
+  final String iconAssetPath;
   final VoidCallback? onPressed;
 
   @override
@@ -513,13 +503,12 @@ class _SocialIconButton extends StatelessWidget {
             width: 28,
             height: 28,
             alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: iconBackground,
-              shape: BoxShape.circle,
-            ),
-            child: Text(
-              iconText,
-              style: AppTextStyles.socialBadgeGlyph(iconColor),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: Image.asset(
+                iconAssetPath,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),

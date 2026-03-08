@@ -282,8 +282,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeSpaceFeedTitle => 'Space Highlights';
 
   @override
-  String get homeSpaceFeedSubtitle =>
-      'Discover articles and visual resources fetched with the MediaWiki Action API.';
+  String get homeSpaceFeedSubtitle => 'Discover articles and visual resources.';
 
   @override
   String get homeSearchHint => 'Search space articles';

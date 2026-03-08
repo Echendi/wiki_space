@@ -611,7 +611,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeSpaceFeedSubtitle.
   ///
   /// In es, this message translates to:
-  /// **'Descubre artículos y recursos visuales obtenidos con MediaWiki Action API.'**
+  /// **'Descubre artículos y recursos visuales.'**
   String get homeSpaceFeedSubtitle;
 
   /// No description provided for @homeSearchHint.
