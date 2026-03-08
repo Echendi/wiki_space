@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../../../core/config/app_env.dart';
 import '../models/space_article_detail_model.dart';
 
 abstract class ArticleDetailRemoteDataSource {
@@ -14,7 +15,6 @@ class ArticleDetailRemoteDataSourceImpl
   ArticleDetailRemoteDataSourceImpl(this._dio);
 
   final Dio _dio;
-  static const Duration _requestTimeout = Duration(seconds: 12);
 
   @override
   Future<SpaceArticleDetailModel> fetchArticleDetail(
@@ -22,7 +22,7 @@ class ArticleDetailRemoteDataSourceImpl
     String languageCode,
   ) async {
     final normalizedLanguage = _normalizeLanguage(languageCode);
-    final endpoint = 'https://$normalizedLanguage.wikipedia.org/w/api.php';
+    final endpoint = AppEnv.wikipediaApiEndpoint(normalizedLanguage);
 
     final response = await _dio.get<Map<String, dynamic>>(
       endpoint,
@@ -41,8 +41,8 @@ class ArticleDetailRemoteDataSourceImpl
         'origin': '*',
       },
       options: Options(
-        sendTimeout: _requestTimeout,
-        receiveTimeout: _requestTimeout,
+        sendTimeout: AppEnv.wikiRequestTimeout,
+        receiveTimeout: AppEnv.wikiRequestTimeout,
       ),
     );
 

@@ -1,6 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 
+import '../config/app_env.dart';
 import 'network_status.dart';
 
 /// Implementacion de [NetworkStatus] basada en `connectivity_plus` + probe HTTP.
@@ -19,9 +20,6 @@ class ConnectivityNetworkStatusAdapter implements NetworkStatus {
   final Connectivity _connectivity;
   final Dio _dio;
 
-  static const String _probeUrl = 'https://www.google.com/generate_204';
-  static const Duration _probeTimeout = Duration(seconds: 4);
-
   /// Evalua conectividad efectiva a internet en dos pasos.
   ///
   /// 1) Verifica transporte disponible.
@@ -39,10 +37,10 @@ class ConnectivityNetworkStatusAdapter implements NetworkStatus {
 
     try {
       final response = await _dio.get<void>(
-        _probeUrl,
+        AppEnv.networkProbeUrl,
         options: Options(
-          sendTimeout: _probeTimeout,
-          receiveTimeout: _probeTimeout,
+          sendTimeout: AppEnv.networkProbeTimeout,
+          receiveTimeout: AppEnv.networkProbeTimeout,
           responseType: ResponseType.plain,
           followRedirects: false,
           validateStatus: (status) => status != null && status < 500,

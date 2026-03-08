@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 
+import '../config/app_env.dart';
 import '../network/connectivity_network_status_adapter.dart';
 import '../network/network_status.dart';
 import '../services/connectivity_status_service.dart';
@@ -35,8 +36,8 @@ void _registerCoreDependencies() {
     serviceLocator.registerLazySingleton<Dio>(
       () => Dio(
         BaseOptions(
-          connectTimeout: const Duration(seconds: 15),
-          receiveTimeout: const Duration(seconds: 15),
+          connectTimeout: AppEnv.wikiRequestTimeout,
+          receiveTimeout: AppEnv.wikiRequestTimeout,
         ),
       ),
     );

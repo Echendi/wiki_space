@@ -4,6 +4,8 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
+import 'core/config/app_env.dart';
+
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
 /// Example:
@@ -49,22 +51,21 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCPapMcZmq2kx9lj1M73qTl-hYLGX_5KZo',
-    appId: '1:781393003082:android:dbc8a2fe19f16b6ad6dcb3',
-    messagingSenderId: '781393003082',
-    projectId: 'echendi-wiki-space',
-    storageBucket: 'echendi-wiki-space.firebasestorage.app',
-  );
+  static FirebaseOptions get android => FirebaseOptions(
+        apiKey: AppEnv.firebaseAndroidApiKey,
+        appId: AppEnv.firebaseAndroidAppId,
+        messagingSenderId: AppEnv.firebaseMessagingSenderId,
+        projectId: AppEnv.firebaseProjectId,
+        storageBucket: AppEnv.firebaseStorageBucket,
+      );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDWWyazcNzV4MR6xPQcC9ATVFGzjAQkL9g',
-    appId: '1:781393003082:ios:6a758e248f1563ebd6dcb3',
-    messagingSenderId: '781393003082',
-    projectId: 'echendi-wiki-space',
-    storageBucket: 'echendi-wiki-space.firebasestorage.app',
-    iosClientId: '781393003082-88f7jjofpdjcs3s7t4egsip56gqr1j08.apps.googleusercontent.com',
-    iosBundleId: 'com.example.wikiSpace',
-  );
-
+  static FirebaseOptions get ios => FirebaseOptions(
+        apiKey: AppEnv.firebaseIosApiKey,
+        appId: AppEnv.firebaseIosAppId,
+        messagingSenderId: AppEnv.firebaseMessagingSenderId,
+        projectId: AppEnv.firebaseProjectId,
+        storageBucket: AppEnv.firebaseStorageBucket,
+        iosClientId: AppEnv.firebaseIosClientId,
+        iosBundleId: AppEnv.firebaseIosBundleId,
+      );
 }

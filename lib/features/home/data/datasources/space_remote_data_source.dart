@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../../../core/config/app_env.dart';
 import '../models/space_article_model.dart';
 
 abstract class SpaceRemoteDataSource {
@@ -15,7 +16,6 @@ class SpaceRemoteDataSourceImpl implements SpaceRemoteDataSource {
   SpaceRemoteDataSourceImpl(this._dio);
 
   final Dio _dio;
-  static const Duration _requestTimeout = Duration(seconds: 12);
 
   @override
   Future<List<SpaceArticleModel>> fetchSpaceArticles(
@@ -25,7 +25,7 @@ class SpaceRemoteDataSourceImpl implements SpaceRemoteDataSource {
     int offset = 0,
   }) async {
     final normalizedLanguage = _normalizeLanguage(languageCode);
-    final endpoint = 'https://$normalizedLanguage.wikipedia.org/w/api.php';
+    final endpoint = AppEnv.wikipediaApiEndpoint(normalizedLanguage);
 
     final normalizedQuery = query.trim();
     final safeLimit = limit <= 0 ? 1 : limit;
@@ -151,8 +151,8 @@ class SpaceRemoteDataSourceImpl implements SpaceRemoteDataSource {
         'origin': '*',
       },
       options: Options(
-        sendTimeout: _requestTimeout,
-        receiveTimeout: _requestTimeout,
+        sendTimeout: AppEnv.wikiRequestTimeout,
+        receiveTimeout: AppEnv.wikiRequestTimeout,
       ),
     );
 
