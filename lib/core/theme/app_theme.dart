@@ -3,15 +3,21 @@ import 'package:flutter/material.dart';
 import 'app_palette.dart';
 import 'app_text_styles.dart';
 
+/// Fabrica de temas globales de la app.
+///
+/// Provee configuracion unificada para modo claro y oscuro sobre Material 3.
 class AppTheme {
+  /// Construye el tema claro.
   static ThemeData light() {
     return _build(Brightness.light);
   }
 
+  /// Construye el tema oscuro.
   static ThemeData dark() {
     return _build(Brightness.dark);
   }
 
+  /// Crea la base comun de tema segun el brillo recibido.
   static ThemeData _build(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
 

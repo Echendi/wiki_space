@@ -5,6 +5,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_settings_state.dart';
 
+/// Gestiona la configuracion global de interfaz (idioma y tema).
+///
+/// Responsabilidades:
+/// - Cargar preferencias persistidas al inicio.
+/// - Emitir cambios de estado para refrescar UI global.
+/// - Persistir cambios en `SharedPreferences`.
 class AppSettingsCubit extends Cubit<AppSettingsState> {
   AppSettingsCubit()
       : super(
@@ -17,6 +23,9 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
   static const String localeLanguageCodeKey = 'preferred_locale_language_code';
   static const String themeModeKey = 'preferred_theme_mode';
 
+  /// Carga el idioma y modo de tema guardados localmente.
+  ///
+  /// Si no hay datos validos, mantiene los valores actuales del estado.
   Future<void> loadSavedPreferences() async {
     final prefs = await _getSharedPreferencesSafe();
     if (prefs == null) {
@@ -48,6 +57,7 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     );
   }
 
+  /// Actualiza el idioma actual y lo persiste si hay cambio real.
   Future<void> setLocale(Locale locale) async {
     if (locale.languageCode == state.locale.languageCode) {
       return;
@@ -59,6 +69,7 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     await prefs?.setString(localeLanguageCodeKey, locale.languageCode);
   }
 
+  /// Actualiza el modo de tema actual y lo persiste si hay cambio real.
   Future<void> setThemeMode(ThemeMode themeMode) async {
     if (themeMode == state.themeMode) {
       return;
@@ -76,6 +87,7 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     await prefs?.setString(themeModeKey, encodedThemeMode);
   }
 
+  /// Obtiene `SharedPreferences` de forma segura para entornos sin plugin.
   Future<SharedPreferences?> _getSharedPreferencesSafe() async {
     try {
       return await SharedPreferences.getInstance();

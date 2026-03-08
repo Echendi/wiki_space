@@ -11,9 +11,15 @@ import '../../features/auth/di/auth_di.dart';
 import '../../features/detail/di/detail_di.dart';
 import '../../features/home/di/home_di.dart';
 
+/// Contenedor global de dependencias para toda la app.
 final GetIt serviceLocator = GetIt.instance;
 
 /// Configura todos los registros globales de dependencias.
+///
+/// Orden de inicializacion:
+/// 1) Core (infraestructura compartida).
+/// 2) Features (auth/home/detail).
+/// 3) Servicios que requieren arranque explicito.
 Future<void> setupDependencies() async {
   _registerCoreDependencies();
   _registerFeatureDependencies();
@@ -21,6 +27,9 @@ Future<void> setupDependencies() async {
   await serviceLocator<ConnectivityStatusService>().initialize();
 }
 
+/// Registra dependencias de infraestructura reutilizables.
+///
+/// Usa `registerLazySingleton` para instanciacion diferida y unica.
 void _registerCoreDependencies() {
   if (!serviceLocator.isRegistered<Dio>()) {
     serviceLocator.registerLazySingleton<Dio>(
@@ -64,6 +73,7 @@ void _registerCoreDependencies() {
   }
 }
 
+/// Registra las dependencias por modulo/feature.
 void _registerFeatureDependencies() {
   registerAuthDependencies(serviceLocator);
   registerHomeDependencies(serviceLocator);

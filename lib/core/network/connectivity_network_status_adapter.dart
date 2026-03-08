@@ -3,6 +3,13 @@ import 'package:dio/dio.dart';
 
 import 'network_status.dart';
 
+/// Implementacion de [NetworkStatus] basada en `connectivity_plus` + probe HTTP.
+///
+/// Combina dos verificaciones:
+/// - Transporte disponible (wifi/movil/ethernet) via plugin de conectividad.
+/// - Alcance real de internet via una solicitud HTTP liviana.
+///
+/// Esto evita falsos positivos cuando existe transporte local pero no salida.
 class ConnectivityNetworkStatusAdapter implements NetworkStatus {
   ConnectivityNetworkStatusAdapter(
     this._connectivity,
@@ -15,6 +22,12 @@ class ConnectivityNetworkStatusAdapter implements NetworkStatus {
   static const String _probeUrl = 'https://www.google.com/generate_204';
   static const Duration _probeTimeout = Duration(seconds: 4);
 
+  /// Evalua conectividad efectiva a internet en dos pasos.
+  ///
+  /// 1) Verifica transporte disponible.
+  /// 2) Ejecuta probe HTTP con timeout corto.
+  ///
+  /// Cualquier excepcion de red se interpreta como falta de internet real.
   @override
   Future<bool> hasInternetConnection() async {
     final results = await _connectivity.checkConnectivity();
@@ -45,6 +58,9 @@ class ConnectivityNetworkStatusAdapter implements NetworkStatus {
     }
   }
 
+  /// Emite cambios de estado de internet real a partir del stream del plugin.
+  ///
+  /// `distinct()` evita emisiones repetidas del mismo valor consecutivo.
   @override
   Stream<bool> get onStatusChanged =>
       _connectivity.onConnectivityChanged.asyncMap((_) {

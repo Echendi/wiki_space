@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// Paleta centralizada de colores de la aplicacion.
+///
+/// Define colores semanticos reutilizables para mantener consistencia visual
+/// entre light/dark mode y componentes de UI.
 class AppPalette {
   static const Color primary = Color(0xFF55D6BE);
   static const Color secondary = Color(0xFF2B8BCF);
