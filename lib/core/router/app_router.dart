@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/widgets/space_bottom_nav_bar.dart';
-import '../../features/auth/data/auth_service.dart';
+import '../../features/auth/domain/usecases/auth_use_cases.dart';
 import '../../features/auth/presentation/pages.dart';
 import '../../features/detail/presentation/pages.dart';
 import '../../features/home/presentation/pages/pages.dart';
@@ -15,18 +15,18 @@ import 'app_routes.dart';
 
 class AppRouter {
   AppRouter({
-    required this.authService,
+    required this.authUseCases,
     required this.locale,
     required this.themeMode,
     required this.onLocaleChanged,
     required this.onThemeModeChanged,
-  }) : _authRefresh = _AuthRefreshListenable(authService.authStateChanges) {
+  }) : _authRefresh = _AuthRefreshListenable(authUseCases.watchAuthState()) {
     router = GoRouter(
       initialLocation: AppRoutes.splash,
       refreshListenable: _authRefresh,
       redirect: (context, state) {
         final path = state.matchedLocation;
-        final isLoggedIn = authService.currentUser != null;
+        final isLoggedIn = authUseCases.getCurrentUser() != null;
 
         final isAuthFree = path == AppRoutes.splash ||
             path == AppRoutes.login ||
@@ -47,7 +47,7 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.splash,
           builder: (context, state) => SplashScreen(
-            authService: authService,
+            authUseCases: authUseCases,
             locale: locale(),
             themeMode: themeMode(),
             onLocaleChanged: onLocaleChanged,
@@ -57,7 +57,6 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.login,
           builder: (context, state) => LoginScreen(
-            authService: authService,
             locale: locale(),
             themeMode: themeMode(),
             onLocaleChanged: onLocaleChanged,
@@ -67,7 +66,6 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.register,
           builder: (context, state) => RegisterScreen(
-            authService: authService,
             locale: locale(),
             themeMode: themeMode(),
             onLocaleChanged: onLocaleChanged,
@@ -90,7 +88,7 @@ class AppRouter {
                 GoRoute(
                   path: AppRoutes.home,
                   builder: (context, state) => HomeScreen(
-                    authService: authService,
+                    authUseCases: authUseCases,
                     locale: locale(),
                     themeMode: themeMode(),
                     onLocaleChanged: onLocaleChanged,
@@ -104,7 +102,7 @@ class AppRouter {
                 GoRoute(
                   path: AppRoutes.profail,
                   builder: (context, state) => ProfileScreen(
-                    authService: authService,
+                    authUseCases: authUseCases,
                     locale: locale(),
                     themeMode: themeMode(),
                     onLocaleChanged: onLocaleChanged,
@@ -150,7 +148,7 @@ class AppRouter {
     );
   }
 
-  final AuthService authService;
+  final AuthUseCases authUseCases;
   final Locale Function() locale;
   final ThemeMode Function() themeMode;
   final ValueChanged<Locale> onLocaleChanged;

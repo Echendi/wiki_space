@@ -1,22 +1,23 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/di/service_locator.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/widgets/global_top_bar.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../data/auth_service.dart';
+import '../cubit/auth_cubit.dart';
+import '../cubit/auth_state.dart';
 import '../widgets/widgets.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({
     super.key,
-    required this.authService,
     required this.locale,
     required this.themeMode,
     required this.onLocaleChanged,
     required this.onThemeModeChanged,
   });
 
-  final AuthService authService;
   final Locale locale;
   final ThemeMode themeMode;
   final ValueChanged<Locale> onLocaleChanged;
@@ -32,8 +33,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  late final AuthCubit _authCubit;
 
-  bool _isLoading = false;
+  @override
+  void initState() {
+    super.initState();
+    _authCubit = serviceLocator<AuthCubit>();
+  }
 
   @override
   void dispose() {
@@ -41,6 +47,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _authCubit.close();
     super.dispose();
   }
 
@@ -49,50 +56,54 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    await _authCubit.signUpWithEmail(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+      displayName: _nameController.text.trim(),
+    );
+  }
 
-    try {
-      await widget.authService.signUpWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+  void _onAuthStateChanged(BuildContext context, AuthState state) {
+    if (state.action != AuthAction.signUpEmail) {
+      return;
+    }
 
-      final currentUser = widget.authService.currentUser;
-      final displayName = _nameController.text.trim();
-      if (currentUser != null && displayName.isNotEmpty) {
-        await currentUser.updateDisplayName(displayName);
-        await currentUser.reload();
-      }
-
-      if (!mounted) {
-        return;
-      }
-
+    final l10n = AppLocalizations.of(context);
+    if (state.status == AuthViewStatus.success) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).registerSuccess)),
+          SnackBar(content: Text(l10n.registerSuccess)),
         );
-    } catch (_) {
-      if (!mounted) {
-        return;
-      }
+      return;
+    }
+
+    if (state.status == AuthViewStatus.failure) {
+      final code = state.errorCode ?? 'unknown';
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
             backgroundColor: AppPalette.error,
-            content: Text(AppLocalizations.of(context).registerError),
+            content: Text(_errorMessageForCode(code)),
           ),
         );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+    }
+  }
+
+  String _errorMessageForCode(String code) {
+    final l10n = AppLocalizations.of(context);
+    switch (code) {
+      case 'invalid-email':
+        return l10n.firebaseInvalidEmail;
+      case 'network-request-failed':
+        return l10n.firebaseNetworkError;
+      case 'too-many-requests':
+        return l10n.firebaseTooManyRequests;
+      case 'unknown':
+        return l10n.registerError;
+      default:
+        return l10n.registerError;
     }
   }
 
@@ -102,10 +113,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (email.isEmpty) {
       return l10n.emailRequired;
     }
+
     final regex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
     if (!regex.hasMatch(email)) {
       return l10n.emailInvalid;
     }
+
     return null;
   }
 
@@ -209,119 +222,132 @@ class _RegisterScreenState extends State<RegisterScreen> {
         onThemeModeChanged: widget.onThemeModeChanged,
         showBackButton: true,
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 460),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color:
-                    (isDark ? AppPalette.surfaceDark : AppPalette.surfaceLight)
-                        .withValues(alpha: 0.92),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppPalette.accent.withValues(alpha: 0.28),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .shadow
-                        .withValues(alpha: 0.2),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
+      body: BlocProvider<AuthCubit>.value(
+        value: _authCubit,
+        child: BlocListener<AuthCubit, AuthState>(
+          listener: _onAuthStateChanged,
+          child: BlocBuilder<AuthCubit, AuthState>(
+            builder: (context, authState) {
+              final isLoading = authState.isLoading;
+
+              return Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 460),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: (isDark
+                                ? AppPalette.surfaceDark
+                                : AppPalette.surfaceLight)
+                            .withValues(alpha: 0.92),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppPalette.accent.withValues(alpha: 0.28),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .shadow
+                                .withValues(alpha: 0.2),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(18),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              AuthFormHeader(
+                                title: l10n.registerTitle,
+                                isDark: isDark,
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _nameController,
+                                validator: _validateName,
+                                textInputAction: TextInputAction.next,
+                                style: TextStyle(color: titleColor),
+                                decoration: _fieldDecoration(
+                                  context,
+                                  l10n.profileDisplayNameLabel,
+                                  isDark,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              TextFormField(
+                                controller: _emailController,
+                                validator: _validateEmail,
+                                keyboardType: TextInputType.emailAddress,
+                                textInputAction: TextInputAction.next,
+                                style: TextStyle(color: titleColor),
+                                decoration: _fieldDecoration(
+                                  context,
+                                  l10n.emailLabel,
+                                  isDark,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              TextFormField(
+                                controller: _passwordController,
+                                validator: _validatePassword,
+                                obscureText: true,
+                                textInputAction: TextInputAction.next,
+                                style: TextStyle(color: titleColor),
+                                decoration: _fieldDecoration(
+                                  context,
+                                  l10n.passwordLabel,
+                                  isDark,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              _PasswordChecks(
+                                controller: _passwordController,
+                                isDark: isDark,
+                                rulesBuilder: (password) =>
+                                    _passwordRules(l10n, password),
+                              ),
+                              const SizedBox(height: 12),
+                              TextFormField(
+                                controller: _confirmPasswordController,
+                                validator: _validateConfirmPassword,
+                                obscureText: true,
+                                textInputAction: TextInputAction.done,
+                                onFieldSubmitted: (_) => _submit(),
+                                style: TextStyle(color: titleColor),
+                                decoration: _fieldDecoration(
+                                  context,
+                                  l10n.confirmPasswordLabel,
+                                  isDark,
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+                              ElevatedButton(
+                                onPressed: isLoading ? null : _submit,
+                                child: isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : Text(l10n.registerButton),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      AuthFormHeader(
-                        title: l10n.registerTitle,
-                        isDark: isDark,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _nameController,
-                        validator: _validateName,
-                        textInputAction: TextInputAction.next,
-                        style: TextStyle(color: titleColor),
-                        decoration: _fieldDecoration(
-                          context,
-                          l10n.profileDisplayNameLabel,
-                          isDark,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _emailController,
-                        validator: _validateEmail,
-                        textInputAction: TextInputAction.next,
-                        style: TextStyle(color: titleColor),
-                        decoration: _fieldDecoration(
-                          context,
-                          l10n.emailLabel,
-                          isDark,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _passwordController,
-                        validator: _validatePassword,
-                        obscureText: true,
-                        textInputAction: TextInputAction.next,
-                        style: TextStyle(color: titleColor),
-                        decoration: _fieldDecoration(
-                          context,
-                          l10n.passwordLabel,
-                          isDark,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _PasswordChecks(
-                        controller: _passwordController,
-                        isDark: isDark,
-                        rulesBuilder: (password) =>
-                            _passwordRules(l10n, password),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _confirmPasswordController,
-                        validator: _validateConfirmPassword,
-                        obscureText: true,
-                        style: TextStyle(color: titleColor),
-                        decoration: _fieldDecoration(
-                          context,
-                          l10n.confirmPasswordLabel,
-                          isDark,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      SizedBox(
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _submit,
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : Text(l10n.registerButton),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ),
       ),
@@ -330,10 +356,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 }
 
 class _PasswordRule {
-  const _PasswordRule({
-    required this.label,
-    required this.passed,
-  });
+  const _PasswordRule({required this.label, required this.passed});
 
   final String label;
   final bool passed;
@@ -356,6 +379,7 @@ class _PasswordChecks extends StatelessWidget {
       valueListenable: controller,
       builder: (context, value, _) {
         final rules = rulesBuilder(value.text);
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

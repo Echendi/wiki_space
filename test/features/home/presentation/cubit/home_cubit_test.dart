@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:wiki_space/core/network/network_status.dart';
 import 'package:wiki_space/features/home/domain/entities/home_exceptions.dart';
 import 'package:wiki_space/features/home/domain/entities/space_article.dart';
 import 'package:wiki_space/features/home/domain/entities/space_articles_result.dart';
@@ -14,7 +14,7 @@ import 'package:wiki_space/features/home/presentation/cubit/home_state.dart';
 class _MockGetSpaceArticlesUseCase extends Mock
     implements GetSpaceArticlesUseCase {}
 
-class _MockConnectivity extends Mock implements Connectivity {}
+class _MockNetworkStatus extends Mock implements NetworkStatus {}
 
 void main() {
   // Pruebas de comportamiento del cubit principal de Home.
@@ -22,21 +22,20 @@ void main() {
   // y reconexion de red.
   group('HomeCubit', () {
     late _MockGetSpaceArticlesUseCase useCase;
-    late _MockConnectivity connectivity;
-    late StreamController<List<ConnectivityResult>> connectivityController;
+    late _MockNetworkStatus networkStatus;
+    late StreamController<bool> connectivityController;
 
     setUp(() {
       useCase = _MockGetSpaceArticlesUseCase();
-      connectivity = _MockConnectivity();
-      connectivityController =
-          StreamController<List<ConnectivityResult>>.broadcast();
+      networkStatus = _MockNetworkStatus();
+      connectivityController = StreamController<bool>.broadcast();
 
       when(
-        () => connectivity.onConnectivityChanged,
+        () => networkStatus.onStatusChanged,
       ).thenAnswer((_) => connectivityController.stream);
       when(
-        () => connectivity.checkConnectivity(),
-      ).thenAnswer((_) async => [ConnectivityResult.wifi]);
+        () => networkStatus.hasInternetConnection(),
+      ).thenAnswer((_) async => true);
     });
 
     tearDown(() async {
@@ -71,7 +70,7 @@ void main() {
           ),
         );
 
-        return HomeCubit(useCase, connectivity);
+        return HomeCubit(useCase, networkStatus);
       },
       // Act: se ejecuta la carga con espacios para comprobar trim del query.
       act: (cubit) => cubit.load('es', query: '  mars  '),
@@ -112,7 +111,7 @@ void main() {
           ),
         ).thenThrow(const OfflineNoCachedDataException());
 
-        return HomeCubit(useCase, connectivity);
+        return HomeCubit(useCase, networkStatus);
       },
       // Act: intento de carga normal del home.
       act: (cubit) => cubit.load('en'),
@@ -132,10 +131,10 @@ void main() {
         () async {
       // Arrange: estado inicial offline al crear el cubit.
       when(
-        () => connectivity.checkConnectivity(),
-      ).thenAnswer((_) async => [ConnectivityResult.none]);
+        () => networkStatus.hasInternetConnection(),
+      ).thenAnswer((_) async => false);
 
-      final cubit = HomeCubit(useCase, connectivity);
+      final cubit = HomeCubit(useCase, networkStatus);
       addTearDown(cubit.close);
 
       // Act/Assert parcial: despues de inicializar, debe reflejar modo offline.
@@ -144,7 +143,7 @@ void main() {
       expect(cubit.state.isOfflineMode, true);
 
       // Act: la conectividad publica evento de reconexion.
-      connectivityController.add([ConnectivityResult.wifi]);
+      connectivityController.add(true);
       await Future<void>.delayed(Duration.zero);
 
       // Assert final: vuelve a conectado y pide mostrar accion de reconexion.

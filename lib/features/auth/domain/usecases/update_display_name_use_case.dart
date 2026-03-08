@@ -1,0 +1,11 @@
+import '../repositories/auth_repository.dart';
+
+class UpdateDisplayNameUseCase {
+  const UpdateDisplayNameUseCase(this._repository);
+
+  final AuthRepository _repository;
+
+  Future<void> call(String displayName) {
+    return _repository.updateDisplayName(displayName);
+  }
+}

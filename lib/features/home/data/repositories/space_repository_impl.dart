@@ -1,4 +1,4 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
+import '../../../../core/network/network_status.dart';
 
 import '../../domain/entities/home_exceptions.dart';
 import '../../domain/entities/space_articles_result.dart';
@@ -10,12 +10,12 @@ class SpaceRepositoryImpl implements SpaceRepository {
   SpaceRepositoryImpl(
     this._remoteDataSource,
     this._localDataSource,
-    this._connectivity,
+    this._networkStatus,
   );
 
   final SpaceRemoteDataSource _remoteDataSource;
   final SpaceLocalDataSource _localDataSource;
-  final Connectivity _connectivity;
+  final NetworkStatus _networkStatus;
 
   @override
   Future<SpaceArticlesResult> getSpaceArticles(
@@ -25,28 +25,33 @@ class SpaceRepositoryImpl implements SpaceRepository {
     int offset = 0,
   }) async {
     final normalizedQuery = query.trim();
-    final hasConnection = await _hasInternetConnection();
+    final hasConnection = await _networkStatus.hasInternetConnection();
 
     if (hasConnection) {
-      final remoteItems = await _remoteDataSource.fetchSpaceArticles(
-        languageCode,
-        query: normalizedQuery,
-        limit: limit,
-        offset: offset,
-      );
+      try {
+        final remoteItems = await _remoteDataSource.fetchSpaceArticles(
+          languageCode,
+          query: normalizedQuery,
+          limit: limit,
+          offset: offset,
+        );
 
-      await _localDataSource.cacheArticles(
-        languageCode,
-        remoteItems,
-        clearExisting: normalizedQuery.isEmpty && offset == 0,
-      );
+        await _localDataSource.cacheArticles(
+          languageCode,
+          remoteItems,
+          clearExisting: normalizedQuery.isEmpty && offset == 0,
+        );
 
-      return SpaceArticlesResult(
-        articles: remoteItems,
-        isOfflineMode: false,
-        isFromCache: false,
-        hasConnection: true,
-      );
+        return SpaceArticlesResult(
+          articles: remoteItems,
+          isOfflineMode: false,
+          isFromCache: false,
+          hasConnection: true,
+        );
+      } catch (_) {
+        // Connectivity may report transport available while internet access
+        // is actually unavailable. Fallback to cache before failing.
+      }
     }
 
     final cachedItems = await _localDataSource.getCachedArticles(
@@ -66,10 +71,5 @@ class SpaceRepositoryImpl implements SpaceRepository {
       isFromCache: true,
       hasConnection: false,
     );
-  }
-
-  Future<bool> _hasInternetConnection() async {
-    final results = await _connectivity.checkConnectivity();
-    return results.any((result) => result != ConnectivityResult.none);
   }
 }

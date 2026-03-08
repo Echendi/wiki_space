@@ -1,23 +1,22 @@
 import 'dart:async';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wiki_space/core/network/network_status.dart';
 
 import '../../domain/usecases/get_article_detail_use_case.dart';
 import 'detail_state.dart';
 
 class DetailCubit extends Cubit<DetailState> {
-  DetailCubit(this._getArticleDetailUseCase, this._connectivity)
+  DetailCubit(this._getArticleDetailUseCase, this._networkStatus)
       : super(const DetailState()) {
-    _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
+    _connectivitySubscription = _networkStatus.onStatusChanged.listen(
       _onConnectivityChanged,
     );
   }
 
   final GetArticleDetailUseCase _getArticleDetailUseCase;
-  final Connectivity _connectivity;
-  late final StreamSubscription<List<ConnectivityResult>>
-      _connectivitySubscription;
+  final NetworkStatus _networkStatus;
+  late final StreamSubscription<bool> _connectivitySubscription;
 
   String? _lastArticleId;
   String? _lastLanguageCode;
@@ -54,9 +53,7 @@ class DetailCubit extends Cubit<DetailState> {
     }
   }
 
-  Future<void> _onConnectivityChanged(List<ConnectivityResult> results) async {
-    final hasInternet =
-        results.any((result) => result != ConnectivityResult.none);
+  Future<void> _onConnectivityChanged(bool hasInternet) async {
     if (!hasInternet || !_wasOffline) {
       return;
     }

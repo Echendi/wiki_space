@@ -7,7 +7,7 @@ import 'l10n/generated/app_localizations.dart';
 import 'core/di/service_locator.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
-import 'features/auth/data/auth_service.dart';
+import 'features/auth/domain/usecases/auth_use_cases.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -58,7 +58,7 @@ class _MainAppState extends State<MainApp> {
   void initState() {
     super.initState();
     _appRouter = AppRouter(
-      authService: serviceLocator<AuthService>(),
+      authUseCases: serviceLocator<AuthUseCases>(),
       locale: () => _currentLocale,
       themeMode: () => _themeMode,
       onLocaleChanged: _setLocale,

@@ -1,4 +1,4 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
+import '../../../../core/network/network_status.dart';
 
 import '../../domain/entities/detail_exceptions.dart';
 import '../../domain/entities/space_article_detail.dart';
@@ -10,27 +10,30 @@ class ArticleDetailRepositoryImpl implements ArticleDetailRepository {
   const ArticleDetailRepositoryImpl(
     this._remoteDataSource,
     this._localDataSource,
-    this._connectivity,
+    this._networkStatus,
   );
 
   final ArticleDetailRemoteDataSource _remoteDataSource;
   final ArticleDetailLocalDataSource _localDataSource;
-  final Connectivity _connectivity;
+  final NetworkStatus _networkStatus;
 
   @override
   Future<SpaceArticleDetail> getArticleDetail(
     String articleId,
     String languageCode,
   ) async {
-    final results = await _connectivity.checkConnectivity();
-    final hasConnection =
-        results.any((result) => result != ConnectivityResult.none);
+    final hasConnection = await _networkStatus.hasInternetConnection();
 
     if (hasConnection) {
-      final remoteDetail =
-          await _remoteDataSource.fetchArticleDetail(articleId, languageCode);
-      await _localDataSource.cacheDetail(articleId, remoteDetail);
-      return remoteDetail;
+      try {
+        final remoteDetail =
+            await _remoteDataSource.fetchArticleDetail(articleId, languageCode);
+        await _localDataSource.cacheDetail(articleId, remoteDetail);
+        return remoteDetail;
+      } catch (_) {
+        // Transport can be available while internet access is not.
+        // Try cache before surfacing an error.
+      }
     }
 
     final cachedDetail =

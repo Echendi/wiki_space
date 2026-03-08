@@ -3,20 +3,20 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../data/auth_service.dart';
+import '../../domain/usecases/auth_use_cases.dart';
 import '../../../../core/router/app_routes.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({
     super.key,
-    required this.authService,
+    required this.authUseCases,
     required this.locale,
     required this.themeMode,
     required this.onLocaleChanged,
     required this.onThemeModeChanged,
   });
 
-  final AuthService authService;
+  final AuthUseCases authUseCases;
   final Locale locale;
   final ThemeMode themeMode;
   final ValueChanged<Locale> onLocaleChanged;
@@ -37,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<bool> _resolveSession() async {
     final results = await Future.wait<bool>([
-      widget.authService.hasPersistedSession(),
+      widget.authUseCases.hasPersistedSession(),
       Future<bool>.delayed(_minimumSplashDuration, () => false),
     ]);
     return results.first;

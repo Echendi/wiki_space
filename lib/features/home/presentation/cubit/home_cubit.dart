@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wiki_space/core/network/network_status.dart';
 
 import '../../domain/entities/home_exceptions.dart';
 import '../../domain/entities/space_article.dart';
@@ -9,19 +9,18 @@ import '../../domain/usecases/get_space_articles_use_case.dart';
 import 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
-  HomeCubit(this._getSpaceArticlesUseCase, this._connectivity)
+  HomeCubit(this._getSpaceArticlesUseCase, this._networkStatus)
       : super(const HomeState()) {
-    _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
+    _connectivitySubscription = _networkStatus.onStatusChanged.listen(
       _onConnectivityChanged,
     );
     unawaited(_initializeConnectivityState());
   }
 
   final GetSpaceArticlesUseCase _getSpaceArticlesUseCase;
-  final Connectivity _connectivity;
+  final NetworkStatus _networkStatus;
   static const int _pageSize = 4;
-  late final StreamSubscription<List<ConnectivityResult>>
-      _connectivitySubscription;
+  late final StreamSubscription<bool> _connectivitySubscription;
   bool _wasOffline = false;
 
   void _safeEmit(HomeState newState) {
@@ -32,17 +31,14 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   Future<void> _initializeConnectivityState() async {
-    final initialResults = await _connectivity.checkConnectivity();
-    final online = _hasInternet(initialResults);
+    final online = await _networkStatus.hasInternetConnection();
     if (!online) {
       _wasOffline = true;
       _safeEmit(state.copyWith(isConnected: false, isOfflineMode: true));
     }
   }
 
-  void _onConnectivityChanged(List<ConnectivityResult> results) {
-    final online = _hasInternet(results);
-
+  void _onConnectivityChanged(bool online) {
     if (!online) {
       _wasOffline = true;
       _safeEmit(
@@ -61,10 +57,6 @@ class HomeCubit extends Cubit<HomeState> {
       ),
     );
     _wasOffline = false;
-  }
-
-  bool _hasInternet(List<ConnectivityResult> results) {
-    return results.any((result) => result != ConnectivityResult.none);
   }
 
   Future<void> load(String languageCode, {String query = ''}) async {

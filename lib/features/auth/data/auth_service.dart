@@ -3,7 +3,13 @@ import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-class AuthService {
+import '../domain/entities/app_user.dart';
+import '../domain/entities/auth_exception.dart';
+import '../domain/repositories/auth_repository.dart';
+import 'strategies/auth_sign_in_strategy.dart';
+import 'strategies/firebase_auth_strategies.dart';
+
+class AuthService implements AuthRepository {
   AuthService({
     required FirebaseAuth firebaseAuth,
     required FlutterSecureStorage secureStorage,
@@ -19,30 +25,34 @@ class AuthService {
   static const _tokenKey = 'auth_token';
   static const _uidKey = 'auth_uid';
 
-  Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
+  @override
+  Stream<AppUser?> get authStateChanges =>
+      _firebaseAuth.authStateChanges().map(_mapUser);
 
-  User? get currentUser => _firebaseAuth.currentUser;
+  @override
+  AppUser? get currentUser => _mapUser(_firebaseAuth.currentUser);
 
+  Future<AppUser> signInWithStrategy(AuthSignInStrategy strategy) async {
+    final user = await strategy.signIn();
+    await _persistSession(user.id);
+    return user;
+  }
+
+  @override
   Future<void> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
-    final credential = await _firebaseAuth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
+    await signInWithStrategy(
+      EmailPasswordSignInStrategy(
+        firebaseAuth: _firebaseAuth,
+        email: email,
+        password: password,
+      ),
     );
-
-    final user = credential.user;
-    if (user == null) {
-      throw FirebaseAuthException(
-        code: 'user-not-found',
-        message: 'No se encontro un usuario valido.',
-      );
-    }
-
-    await _persistSession(user);
   }
 
+  @override
   Future<void> signUpWithEmailAndPassword({
     required String email,
     required String password,
@@ -54,15 +64,32 @@ class AuthService {
 
     final user = credential.user;
     if (user == null) {
-      throw FirebaseAuthException(
+      throw const AuthException(
         code: 'user-not-found',
         message: 'No se pudo crear un usuario valido.',
       );
     }
 
-    await _persistSession(user);
+    await _persistSession(user.uid);
   }
 
+  @override
+  Future<void> updateDisplayName(String displayName) async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) {
+      return;
+    }
+
+    final normalized = displayName.trim();
+    if (normalized.isEmpty) {
+      return;
+    }
+
+    await user.updateDisplayName(normalized);
+    await user.reload();
+  }
+
+  @override
   Future<void> signOut() async {
     try {
       await _googleSignIn.signOut();
@@ -81,84 +108,30 @@ class AuthService {
     await _secureStorage.delete(key: _uidKey);
   }
 
+  @override
   Future<void> signInWithGoogle() async {
-    final googleUser = await _googleSignIn.signIn();
-    if (googleUser == null) {
-      throw FirebaseAuthException(
-        code: 'aborted-by-user',
-        message: 'El usuario cancelo el inicio de sesion con Google.',
-      );
-    }
-
-    final googleAuth = await googleUser.authentication;
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
+    await signInWithStrategy(
+      GoogleSignInStrategy(
+        firebaseAuth: _firebaseAuth,
+        googleSignIn: _googleSignIn,
+      ),
     );
-
-    final userCredential = await _firebaseAuth.signInWithCredential(credential);
-    final user = userCredential.user;
-    if (user == null) {
-      throw FirebaseAuthException(
-        code: 'user-not-found',
-        message: 'No se pudo completar el acceso con Google.',
-      );
-    }
-
-    await _persistSession(user);
   }
 
+  @override
   Future<void> signInWithFacebook() async {
-    final loginResult = await FacebookAuth.instance.login(
-      permissions: ['email', 'public_profile'],
+    await signInWithStrategy(
+      FacebookSignInStrategy(
+        firebaseAuth: _firebaseAuth,
+      ),
     );
-
-    switch (loginResult.status) {
-      case LoginStatus.success:
-        final token = loginResult.accessToken?.token;
-        if (token == null || token.isEmpty) {
-          throw FirebaseAuthException(
-            code: 'facebook-login-failed',
-            message: 'No se recibio token de Facebook.',
-          );
-        }
-
-        final credential = FacebookAuthProvider.credential(token);
-        final userCredential =
-            await _firebaseAuth.signInWithCredential(credential);
-        final user = userCredential.user;
-        if (user == null) {
-          throw FirebaseAuthException(
-            code: 'user-not-found',
-            message: 'No se pudo completar el acceso con Facebook.',
-          );
-        }
-
-        await _persistSession(user);
-        return;
-      case LoginStatus.cancelled:
-        throw FirebaseAuthException(
-          code: 'aborted-by-user',
-          message: 'El usuario cancelo el inicio de sesion con Facebook.',
-        );
-      case LoginStatus.failed:
-        throw FirebaseAuthException(
-          code: 'facebook-login-failed',
-          message:
-              loginResult.message ?? 'Fallo la autenticacion con Facebook.',
-        );
-      case LoginStatus.operationInProgress:
-        throw FirebaseAuthException(
-          code: 'operation-not-allowed',
-          message: 'Ya hay una operacion de Facebook en progreso.',
-        );
-    }
   }
 
+  @override
   Future<bool> hasPersistedSession() async {
     final existingUser = _firebaseAuth.currentUser;
     if (existingUser != null) {
-      await _persistSession(existingUser);
+      await _persistSession(existingUser.uid);
       return true;
     }
 
@@ -166,13 +139,33 @@ class AuthService {
     return storedUid != null && storedUid.isNotEmpty;
   }
 
-  Future<void> _persistSession(User user) async {
-    final token = await user.getIdToken();
+  Future<void> _persistSession(String uid) async {
+    final token = await _firebaseAuth.currentUser?.getIdToken();
 
     if (token != null && token.isNotEmpty) {
       await _secureStorage.write(key: _tokenKey, value: token);
     }
 
-    await _secureStorage.write(key: _uidKey, value: user.uid);
+    await _secureStorage.write(key: _uidKey, value: uid);
+  }
+
+  AppUser? _mapUser(User? user) {
+    if (user == null) {
+      return null;
+    }
+
+    final providerIds = user.providerData
+        .map((provider) => provider.providerId)
+        .where((id) => id.trim().isNotEmpty)
+        .toList(growable: false);
+
+    return AppUser(
+      id: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      emailVerified: user.emailVerified,
+      lastSignInAt: user.metadata.lastSignInTime,
+      providerIds: providerIds,
+    );
   }
 }

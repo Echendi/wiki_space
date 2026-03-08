@@ -1,15 +1,16 @@
 import 'dart:async';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 
-class ConnectivityStatusService {
-  ConnectivityStatusService(this._connectivity);
+import '../network/network_status.dart';
 
-  final Connectivity _connectivity;
+class ConnectivityStatusService {
+  ConnectivityStatusService(this._networkStatus);
+
+  final NetworkStatus _networkStatus;
   final ValueNotifier<bool> isOnline = ValueNotifier<bool>(true);
 
-  StreamSubscription<List<ConnectivityResult>>? _subscription;
+  StreamSubscription<bool>? _subscription;
   bool _initialized = false;
 
   Future<void> initialize() async {
@@ -18,16 +19,11 @@ class ConnectivityStatusService {
     }
     _initialized = true;
 
-    final initial = await _connectivity.checkConnectivity();
-    isOnline.value = _hasInternet(initial);
+    isOnline.value = await _networkStatus.hasInternetConnection();
 
-    _subscription = _connectivity.onConnectivityChanged.listen((results) {
-      isOnline.value = _hasInternet(results);
+    _subscription = _networkStatus.onStatusChanged.listen((isConnected) {
+      isOnline.value = isConnected;
     });
-  }
-
-  bool _hasInternet(List<ConnectivityResult> results) {
-    return results.any((result) => result != ConnectivityResult.none);
   }
 
   Future<void> dispose() async {

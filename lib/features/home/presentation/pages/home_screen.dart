@@ -7,7 +7,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/widgets/global_top_bar.dart';
 import '../../../../core/widgets/space_scene_background.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../../auth/data/auth_service.dart';
+import '../../../auth/domain/usecases/auth_use_cases.dart';
 import '../cubit/home_cubit.dart';
 import '../cubit/home_state.dart';
 import '../widgets/widgets.dart';
@@ -15,14 +15,14 @@ import '../widgets/widgets.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
-    required this.authService,
+    required this.authUseCases,
     required this.locale,
     required this.themeMode,
     required this.onLocaleChanged,
     required this.onThemeModeChanged,
   });
 
-  final AuthService authService;
+  final AuthUseCases authUseCases;
   final Locale locale;
   final ThemeMode themeMode;
   final ValueChanged<Locale> onLocaleChanged;

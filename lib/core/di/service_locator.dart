@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 
+import '../network/connectivity_network_status_adapter.dart';
+import '../network/network_status.dart';
 import '../services/connectivity_status_service.dart';
 import '../../features/auth/di/auth_di.dart';
 import '../../features/detail/di/detail_di.dart';
@@ -38,6 +40,15 @@ void _registerCoreDependencies() {
   if (!serviceLocator.isRegistered<ConnectivityStatusService>()) {
     serviceLocator.registerLazySingleton<ConnectivityStatusService>(
       () => ConnectivityStatusService(serviceLocator()),
+    );
+  }
+
+  if (!serviceLocator.isRegistered<NetworkStatus>()) {
+    serviceLocator.registerLazySingleton<NetworkStatus>(
+      () => ConnectivityNetworkStatusAdapter(
+        serviceLocator(),
+        serviceLocator(),
+      ),
     );
   }
 

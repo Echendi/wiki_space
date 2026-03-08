@@ -1,22 +1,22 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/widgets/global_top_bar.dart';
 import '../../home/presentation/pages/pages.dart';
-import '../data/auth_service.dart';
+import '../domain/entities/app_user.dart';
+import '../domain/usecases/auth_use_cases.dart';
 import 'pages.dart';
 
 class AuthGate extends StatefulWidget {
   const AuthGate({
     super.key,
-    required this.authService,
+    required this.authUseCases,
     required this.locale,
     required this.themeMode,
     required this.onLocaleChanged,
     required this.onThemeModeChanged,
   });
 
-  final AuthService authService;
+  final AuthUseCases authUseCases;
   final Locale locale;
   final ThemeMode themeMode;
   final ValueChanged<Locale> onLocaleChanged;
@@ -28,7 +28,7 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   late final Future<bool> _sessionCheck =
-      widget.authService.hasPersistedSession();
+      widget.authUseCases.hasPersistedSession();
 
   @override
   Widget build(BuildContext context) {
@@ -44,8 +44,8 @@ class _AuthGateState extends State<AuthGate> {
           );
         }
 
-        return StreamBuilder<User?>(
-          stream: widget.authService.authStateChanges,
+        return StreamBuilder<AppUser?>(
+          stream: widget.authUseCases.watchAuthState(),
           builder: (context, authSnapshot) {
             if (authSnapshot.connectionState == ConnectionState.waiting) {
               return _AuthLoadingScreen(
@@ -59,7 +59,6 @@ class _AuthGateState extends State<AuthGate> {
             final user = authSnapshot.data;
             if (user == null) {
               return LoginScreen(
-                authService: widget.authService,
                 locale: widget.locale,
                 themeMode: widget.themeMode,
                 onLocaleChanged: widget.onLocaleChanged,
@@ -68,7 +67,7 @@ class _AuthGateState extends State<AuthGate> {
             }
 
             return HomeScreen(
-              authService: widget.authService,
+              authUseCases: widget.authUseCases,
               locale: widget.locale,
               themeMode: widget.themeMode,
               onLocaleChanged: widget.onLocaleChanged,

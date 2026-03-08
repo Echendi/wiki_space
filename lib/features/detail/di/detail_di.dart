@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:wiki_space/core/network/network_status.dart';
 
 import '../data/datasources/article_detail_local_data_source.dart';
 import '../data/datasources/article_detail_remote_data_source.dart';
@@ -47,6 +48,9 @@ void registerDetailDependencies(GetIt serviceLocator) {
   }
 
   serviceLocator.registerFactory<DetailCubit>(
-    () => DetailCubit(serviceLocator(), serviceLocator()),
+    () => DetailCubit(
+      serviceLocator(),
+      serviceLocator<NetworkStatus>(),
+    ),
   );
 }

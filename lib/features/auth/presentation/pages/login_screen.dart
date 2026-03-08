@@ -1,29 +1,28 @@
 import 'dart:math' as math;
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/di/service_locator.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/global_top_bar.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../data/auth_service.dart';
+import '../cubit/auth_cubit.dart';
+import '../cubit/auth_state.dart';
 import '../widgets/widgets.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({
     super.key,
-    required this.authService,
     required this.locale,
     required this.themeMode,
     required this.onLocaleChanged,
     required this.onThemeModeChanged,
   });
 
-  final AuthService authService;
   final Locale locale;
   final ThemeMode themeMode;
   final ValueChanged<Locale> onLocaleChanged;
@@ -37,17 +36,21 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  late final AuthCubit _authCubit;
 
-  bool _isLoading = false;
-  bool _isSocialLoading = false;
   bool _obscurePassword = true;
 
-  bool get _isAnyLoading => _isLoading || _isSocialLoading;
+  @override
+  void initState() {
+    super.initState();
+    _authCubit = serviceLocator<AuthCubit>();
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _authCubit.close();
     super.dispose();
   }
 
@@ -58,92 +61,21 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     FocusScope.of(context).unfocus();
-    setState(() {
-      _isLoading = true;
-    });
 
-    try {
-      await widget.authService.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-    } on FirebaseAuthException catch (error) {
-      if (!mounted) {
-        return;
-      }
-      _showError(_firebaseMessageForCode(error.code));
-    } catch (_) {
-      if (!mounted) {
-        return;
-      }
-      _showError(AppLocalizations.of(context).signInUnexpectedError);
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+    await _authCubit.signInWithEmail(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
   }
 
   Future<void> _signInWithGoogle() async {
-    await _runSocialSignIn(widget.authService.signInWithGoogle);
+    FocusScope.of(context).unfocus();
+    await _authCubit.signInWithGoogle();
   }
 
   Future<void> _signInWithFacebook() async {
-    await _runSocialSignIn(widget.authService.signInWithFacebook);
-  }
-
-  Future<void> _runSocialSignIn(Future<void> Function() action) async {
     FocusScope.of(context).unfocus();
-    setState(() {
-      _isSocialLoading = true;
-    });
-
-    try {
-      await action();
-    } on PlatformException catch (error) {
-      if (!mounted) {
-        return;
-      }
-      _showError(_socialPlatformErrorMessage(error));
-    } on FirebaseAuthException catch (error) {
-      if (!mounted) {
-        return;
-      }
-      if (error.code != 'aborted-by-user') {
-        _showError(_firebaseMessageForCode(error.code));
-      }
-    } catch (_) {
-      if (!mounted) {
-        return;
-      }
-      _showError(AppLocalizations.of(context).socialSignInUnavailable);
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSocialLoading = false;
-        });
-      }
-    }
-  }
-
-  String _socialPlatformErrorMessage(PlatformException error) {
-    final l10n = AppLocalizations.of(context);
-    final details = (error.details ?? '').toString().toLowerCase();
-    final code = error.code.toLowerCase();
-
-    if (details.contains('apiexception: 10') ||
-        details.contains('developer_error') ||
-        code.contains('sign_in_failed')) {
-      return l10n.googleSignInConfigError;
-    }
-
-    if (code.contains('network_error')) {
-      return l10n.networkProviderError;
-    }
-
-    return l10n.socialSignInUnavailable;
+    await _authCubit.signInWithFacebook();
   }
 
   void _showError(String message) {
@@ -157,9 +89,13 @@ class _LoginScreenState extends State<LoginScreen> {
       );
   }
 
-  String _firebaseMessageForCode(String code) {
+  String _errorMessageForCode(String code) {
     final l10n = AppLocalizations.of(context);
     switch (code) {
+      case 'google-config-error':
+        return l10n.googleSignInConfigError;
+      case 'social-sign-in-unavailable':
+        return l10n.socialSignInUnavailable;
       case 'invalid-email':
         return l10n.firebaseInvalidEmail;
       case 'invalid-credential':
@@ -176,9 +112,24 @@ class _LoginScreenState extends State<LoginScreen> {
         return l10n.firebaseFacebookLoginFailed;
       case 'operation-not-allowed':
         return l10n.firebaseOperationNotAllowed;
+      case 'unknown':
+        return l10n.signInUnexpectedError;
       default:
         return l10n.firebaseAuthFallbackError;
     }
+  }
+
+  void _onAuthStateChanged(BuildContext context, AuthState state) {
+    if (state.status != AuthViewStatus.failure) {
+      return;
+    }
+
+    final code = state.errorCode ?? 'unknown';
+    if (code == 'aborted-by-user') {
+      return;
+    }
+
+    _showError(_errorMessageForCode(code));
   }
 
   String? _validateEmail(String? value) {
@@ -256,211 +207,241 @@ class _LoginScreenState extends State<LoginScreen> {
         onLocaleChanged: widget.onLocaleChanged,
         onThemeModeChanged: widget.onThemeModeChanged,
       ),
-      body: Stack(
-        children: [
-          const _SpaceBackground(),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final isCompact = constraints.maxHeight < 760;
-              final horizontalPadding = isCompact ? 16.0 : 24.0;
-              final verticalPadding = isCompact ? 12.0 : 20.0;
+      body: BlocProvider<AuthCubit>.value(
+        value: _authCubit,
+        child: BlocListener<AuthCubit, AuthState>(
+          listener: _onAuthStateChanged,
+          child: BlocBuilder<AuthCubit, AuthState>(
+            builder: (context, authState) {
+              final isAnyLoading = authState.isLoading;
+              final isEmailLoading =
+                  isAnyLoading && authState.action == AuthAction.signInEmail;
 
-              return SafeArea(
-                child: Center(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: horizontalPadding,
-                      vertical: verticalPadding,
-                    ),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 440),
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: (isDark
-                                  ? AppPalette.surfaceDark
-                                  : AppPalette.surfaceLight)
-                              .withValues(alpha: 0.9),
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                            color: AppPalette.accent.withValues(alpha: 0.28),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .shadow
-                                  .withValues(alpha: 0.25),
-                              blurRadius: 24,
-                              offset: const Offset(0, 14),
+              return Stack(
+                children: [
+                  const _SpaceBackground(),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isCompact = constraints.maxHeight < 760;
+                      final horizontalPadding = isCompact ? 16.0 : 24.0;
+                      final verticalPadding = isCompact ? 12.0 : 20.0;
+
+                      return SafeArea(
+                        child: Center(
+                          child: SingleChildScrollView(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: horizontalPadding,
+                              vertical: verticalPadding,
                             ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.fromLTRB(
-                            isCompact ? 16 : 24,
-                            isCompact ? 18 : 30,
-                            isCompact ? 16 : 24,
-                            isCompact ? 16 : 24,
-                          ),
-                          child: Form(
-                            key: _formKey,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                AuthFormHeader(
-                                  title: l10n.loginTitle,
-                                  subtitle: l10n.loginSubtitle,
-                                  isDark: isDark,
-                                  compact: isCompact,
-                                ),
-                                SizedBox(height: isCompact ? 14 : 22),
-                                _ThemedField(
-                                  controller: _emailController,
-                                  label: l10n.emailLabel,
-                                  icon: Icons.alternate_email_rounded,
-                                  keyboardType: TextInputType.emailAddress,
-                                  validator: _validateEmail,
-                                  textInputAction: TextInputAction.next,
-                                  isCompact: isCompact,
-                                ),
-                                SizedBox(height: isCompact ? 10 : 14),
-                                _ThemedField(
-                                  controller: _passwordController,
-                                  label: l10n.passwordLabel,
-                                  icon: Icons.lock_outline_rounded,
-                                  validator: _validatePassword,
-                                  obscureText: _obscurePassword,
-                                  textInputAction: TextInputAction.done,
-                                  onFieldSubmitted: (_) => _submit(),
-                                  isCompact: isCompact,
-                                  suffixIcon: IconButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        _obscurePassword = !_obscurePassword;
-                                      });
-                                    },
-                                    icon: Icon(
-                                      _obscurePassword
-                                          ? Icons.visibility_rounded
-                                          : Icons.visibility_off_rounded,
-                                      color: isDark
-                                          ? AppPalette.onDarkMuted
-                                          : AppPalette.onPrimary
-                                              .withValues(alpha: 0.72),
-                                    ),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 440),
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: (isDark
+                                          ? AppPalette.surfaceDark
+                                          : AppPalette.surfaceLight)
+                                      .withValues(alpha: 0.9),
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: AppPalette.accent
+                                        .withValues(alpha: 0.28),
                                   ),
-                                ),
-                                SizedBox(height: isCompact ? 6 : 10),
-                                _PasswordChecks(
-                                  controller: _passwordController,
-                                  isDark: isDark,
-                                  rulesBuilder: (password) =>
-                                      _passwordRules(l10n, password),
-                                ),
-                                SizedBox(height: isCompact ? 14 : 20),
-                                SizedBox(
-                                  height: isCompact ? 48 : 54,
-                                  child: ElevatedButton(
-                                    onPressed: _isAnyLoading ? null : _submit,
-                                    style: ElevatedButton.styleFrom(
-                                      elevation: 0,
-                                      backgroundColor: AppPalette.primary,
-                                      foregroundColor: AppPalette.onPrimary,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .shadow
+                                          .withValues(alpha: 0.25),
+                                      blurRadius: 24,
+                                      offset: const Offset(0, 14),
                                     ),
-                                    child: _isLoading
-                                        ? const SizedBox(
-                                            width: 22,
-                                            height: 22,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2.5,
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                AppPalette.onPrimary,
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.fromLTRB(
+                                    isCompact ? 16 : 24,
+                                    isCompact ? 18 : 30,
+                                    isCompact ? 16 : 24,
+                                    isCompact ? 16 : 24,
+                                  ),
+                                  child: Form(
+                                    key: _formKey,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        AuthFormHeader(
+                                          title: l10n.loginTitle,
+                                          subtitle: l10n.loginSubtitle,
+                                          isDark: isDark,
+                                          compact: isCompact,
+                                        ),
+                                        SizedBox(height: isCompact ? 14 : 22),
+                                        _ThemedField(
+                                          controller: _emailController,
+                                          label: l10n.emailLabel,
+                                          icon: Icons.alternate_email_rounded,
+                                          keyboardType:
+                                              TextInputType.emailAddress,
+                                          validator: _validateEmail,
+                                          textInputAction: TextInputAction.next,
+                                          isCompact: isCompact,
+                                        ),
+                                        SizedBox(height: isCompact ? 10 : 14),
+                                        _ThemedField(
+                                          controller: _passwordController,
+                                          label: l10n.passwordLabel,
+                                          icon: Icons.lock_outline_rounded,
+                                          validator: _validatePassword,
+                                          obscureText: _obscurePassword,
+                                          textInputAction: TextInputAction.done,
+                                          onFieldSubmitted: (_) => _submit(),
+                                          isCompact: isCompact,
+                                          suffixIcon: IconButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                _obscurePassword =
+                                                    !_obscurePassword;
+                                              });
+                                            },
+                                            icon: Icon(
+                                              _obscurePassword
+                                                  ? Icons.visibility_rounded
+                                                  : Icons
+                                                      .visibility_off_rounded,
+                                              color: isDark
+                                                  ? AppPalette.onDarkMuted
+                                                  : AppPalette.onPrimary
+                                                      .withValues(alpha: 0.72),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: isCompact ? 6 : 10),
+                                        _PasswordChecks(
+                                          controller: _passwordController,
+                                          isDark: isDark,
+                                          rulesBuilder: (password) =>
+                                              _passwordRules(l10n, password),
+                                        ),
+                                        SizedBox(height: isCompact ? 14 : 20),
+                                        SizedBox(
+                                          height: isCompact ? 48 : 54,
+                                          child: ElevatedButton(
+                                            onPressed:
+                                                isAnyLoading ? null : _submit,
+                                            style: ElevatedButton.styleFrom(
+                                              elevation: 0,
+                                              backgroundColor:
+                                                  AppPalette.primary,
+                                              foregroundColor:
+                                                  AppPalette.onPrimary,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
                                               ),
                                             ),
-                                          )
-                                        : Text(
-                                            l10n.loginButton,
-                                            style: AppTextStyles.primaryCta(),
+                                            child: isEmailLoading
+                                                ? const SizedBox(
+                                                    width: 22,
+                                                    height: 22,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                      strokeWidth: 2.5,
+                                                      valueColor:
+                                                          AlwaysStoppedAnimation<
+                                                              Color>(
+                                                        AppPalette.onPrimary,
+                                                      ),
+                                                    ),
+                                                  )
+                                                : Text(
+                                                    l10n.loginButton,
+                                                    style: AppTextStyles
+                                                        .primaryCta(),
+                                                  ),
                                           ),
+                                        ),
+                                        SizedBox(height: isCompact ? 10 : 16),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Divider(
+                                                color: AppPalette.accent
+                                                    .withValues(alpha: 0.35),
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 10,
+                                              ),
+                                              child: Text(
+                                                l10n.continueWith,
+                                                style: AppTextStyles.overline(
+                                                    isDark),
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Divider(
+                                                color: AppPalette.accent
+                                                    .withValues(alpha: 0.35),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: isCompact ? 10 : 14),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: _SocialIconButton(
+                                                semanticLabel:
+                                                    l10n.continueWithGoogle,
+                                                iconAssetPath:
+                                                    'assets/images/google.png',
+                                                onPressed: isAnyLoading
+                                                    ? null
+                                                    : _signInWithGoogle,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: _SocialIconButton(
+                                                semanticLabel:
+                                                    l10n.continueWithFacebook,
+                                                iconAssetPath:
+                                                    'assets/images/facebook.png',
+                                                onPressed: isAnyLoading
+                                                    ? null
+                                                    : _signInWithFacebook,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: isCompact ? 10 : 14),
+                                        TextButton(
+                                          onPressed: isAnyLoading
+                                              ? null
+                                              : () => context
+                                                  .push(AppRoutes.register),
+                                          child: Text(l10n.goToRegisterButton),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                                SizedBox(height: isCompact ? 10 : 16),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Divider(
-                                        color: AppPalette.accent
-                                            .withValues(alpha: 0.35),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                      ),
-                                      child: Text(
-                                        l10n.continueWith,
-                                        style: AppTextStyles.overline(isDark),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Divider(
-                                        color: AppPalette.accent
-                                            .withValues(alpha: 0.35),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: isCompact ? 10 : 14),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: _SocialIconButton(
-                                        semanticLabel: l10n.continueWithGoogle,
-                                        iconAssetPath:
-                                            'assets/images/google.png',
-                                        onPressed: _isAnyLoading
-                                            ? null
-                                            : _signInWithGoogle,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: _SocialIconButton(
-                                        semanticLabel:
-                                            l10n.continueWithFacebook,
-                                        iconAssetPath:
-                                            'assets/images/facebook.png',
-                                        onPressed: _isAnyLoading
-                                            ? null
-                                            : _signInWithFacebook,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: isCompact ? 10 : 14),
-                                TextButton(
-                                  onPressed: _isAnyLoading
-                                      ? null
-                                      : () => context.push(AppRoutes.register),
-                                  child: Text(l10n.goToRegisterButton),
-                                ),
-                              ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
-                ),
+                ],
               );
             },
           ),
-        ],
+        ),
       ),
     );
   }
