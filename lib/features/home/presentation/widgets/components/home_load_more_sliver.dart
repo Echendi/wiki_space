@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+/// Indicador de carga incremental al final del feed de Home.
 class HomeLoadMoreSliver extends StatelessWidget {
+  /// Crea el sliver que muestra spinner cuando se carga mas contenido.
   const HomeLoadMoreSliver({
     super.key,
     required this.isLoadingMore,

@@ -1,10 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_palette.dart';
-import '../../../../l10n/generated/app_localizations.dart';
-import '../../../auth/presentation/widgets/space_logo.dart';
+import '../../../../../core/theme/app_palette.dart';
+import '../../../../../l10n/generated/app_localizations.dart';
+import 'home_image_fallback.dart';
 
+/// Tarjeta de articulo usada en el grid inferior de Home.
 class HomeArticleTile extends StatelessWidget {
   const HomeArticleTile({
     super.key,
@@ -66,15 +67,15 @@ class HomeArticleTile extends StatelessWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                   ),
-                  errorWidget: (_, __, ___) => _ImageFallback(
-                    tileBackground: tileBackground,
-                    label: l10n.homeImageUnavailable,
+                  errorWidget: (_, __, ___) => ColoredBox(
+                    color: tileBackground,
+                    child: HomeImageFallback(label: l10n.homeImageUnavailable),
                   ),
                 )
               else
-                _ImageFallback(
-                  tileBackground: tileBackground,
-                  label: l10n.homeImageUnavailable,
+                ColoredBox(
+                  color: tileBackground,
+                  child: HomeImageFallback(label: l10n.homeImageUnavailable),
                 ),
               DecoratedBox(
                 decoration: BoxDecoration(
@@ -106,40 +107,6 @@ class HomeArticleTile extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ImageFallback extends StatelessWidget {
-  const _ImageFallback({required this.tileBackground, required this.label});
-
-  final Color tileBackground;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      color: tileBackground,
-      alignment: Alignment.center,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SpaceLogo(
-            size: 56,
-            showWordmark: false,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: isDark
-                      ? AppPalette.onDark.withValues(alpha: 0.82)
-                      : AppPalette.onPrimary.withValues(alpha: 0.82),
-                ),
-          ),
-        ],
       ),
     );
   }

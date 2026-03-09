@@ -6,7 +6,9 @@ import '../../domain/repositories/space_repository.dart';
 import '../datasources/space_local_data_source.dart';
 import '../datasources/space_remote_data_source.dart';
 
+/// Repositorio que combina fuente remota y cache local para Home.
 class SpaceRepositoryImpl implements SpaceRepository {
+  /// Recibe dependencias de fuentes de datos y estado de red.
   SpaceRepositoryImpl(
     this._remoteDataSource,
     this._localDataSource,
@@ -17,6 +19,7 @@ class SpaceRepositoryImpl implements SpaceRepository {
   final SpaceLocalDataSource _localDataSource;
   final NetworkStatus _networkStatus;
 
+  /// Obtiene articulos remotos cuando hay red y usa cache como fallback.
   @override
   Future<SpaceArticlesResult> getSpaceArticles(
     String languageCode, {

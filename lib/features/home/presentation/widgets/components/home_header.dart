@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_palette.dart';
-import '../../../../core/theme/app_text_styles.dart';
-import '../../../../l10n/generated/app_localizations.dart';
+import '../../../../../core/theme/app_palette.dart';
+import '../../../../../core/theme/app_text_styles.dart';
+import '../../../../../l10n/generated/app_localizations.dart';
 
+/// Encabezado superior de Home con titulo y subtitulo localizados.
 class HomeHeader extends StatelessWidget {
+  /// Crea el encabezado principal de la pantalla Home.
   const HomeHeader({
     super.key,
     required this.isDark,

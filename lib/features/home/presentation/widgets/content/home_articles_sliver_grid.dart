@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/entities/space_article.dart';
-import 'home_article_tile.dart';
+import '../../../domain/entities/space_article.dart';
+import '../cards/home_article_tile.dart';
 
+/// Grid en sliver para renderizar el feed de articulos de Home.
 class HomeArticlesSliverGrid extends StatelessWidget {
+  /// Crea un sliver grid responsive de articulos.
   const HomeArticlesSliverGrid({
     super.key,
     required this.items,

@@ -6,9 +6,12 @@ import 'package:wiki_space/core/network/network_status.dart';
 import '../../domain/entities/home_exceptions.dart';
 import '../../domain/entities/space_article.dart';
 import '../../domain/usecases/get_space_articles_use_case.dart';
+import 'home_status.dart';
 import 'home_state.dart';
 
+/// Gestiona estado de Home: carga inicial, paginacion, busqueda y conectividad.
 class HomeCubit extends Cubit<HomeState> {
+  /// Crea el cubit y se suscribe a cambios de red.
   HomeCubit(this._getSpaceArticlesUseCase, this._networkStatus)
       : super(const HomeState()) {
     _connectivitySubscription = _networkStatus.onStatusChanged.listen(
@@ -23,6 +26,7 @@ class HomeCubit extends Cubit<HomeState> {
   late final StreamSubscription<bool> _connectivitySubscription;
   bool _wasOffline = false;
 
+  /// Emite estado solo si el cubit sigue activo.
   void _safeEmit(HomeState newState) {
     if (isClosed) {
       return;
@@ -30,6 +34,7 @@ class HomeCubit extends Cubit<HomeState> {
     emit(newState);
   }
 
+  /// Sincroniza el estado inicial de conectividad al crear el cubit.
   Future<void> _initializeConnectivityState() async {
     final online = await _networkStatus.hasInternetConnection();
     if (!online) {
@@ -38,6 +43,7 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
+  /// Reacciona a cambios online/offline para actualizar banners de UI.
   void _onConnectivityChanged(bool online) {
     if (!online) {
       _wasOffline = true;
@@ -59,6 +65,7 @@ class HomeCubit extends Cubit<HomeState> {
     _wasOffline = false;
   }
 
+  /// Carga la primera pagina de articulos con query opcional.
   Future<void> load(String languageCode, {String query = ''}) async {
     final normalizedQuery = query.trim();
 
@@ -133,6 +140,7 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
+  /// Carga mas articulos tomando el offset actual de la lista.
   Future<void> loadMore(String languageCode) async {
     if (state.status != HomeStatus.success ||
         state.isLoadingMore ||
@@ -197,10 +205,12 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
+  /// Ejecuta busqueda reutilizando el flujo de `load`.
   Future<void> search(String languageCode, String query) {
     return load(languageCode, query: query);
   }
 
+  /// Actualiza indice activo del carrusel principal.
   void onPageChanged(int index) {
     if (index == state.currentIndex) {
       return;

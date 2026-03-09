@@ -1,6 +1,8 @@
 import '../../domain/entities/space_article.dart';
 
+/// Modelo de datos para mapear respuestas de Wikipedia a dominio.
 class SpaceArticleModel extends SpaceArticle {
+  /// Crea un modelo inmutable reutilizando la entidad base.
   const SpaceArticleModel({
     required super.id,
     required super.title,
@@ -9,6 +11,7 @@ class SpaceArticleModel extends SpaceArticle {
     required super.pageUrl,
   });
 
+  /// Construye un modelo desde el JSON de `query.pages`.
   factory SpaceArticleModel.fromJson(Map<String, dynamic> json) {
     final thumbnail = json['thumbnail'] as Map<String, dynamic>?;
 
@@ -21,6 +24,7 @@ class SpaceArticleModel extends SpaceArticle {
     );
   }
 
+  /// Normaliza URLs relativas/inseguras a formato absoluto HTTPS valido.
   static String _normalizeUrl(String rawUrl) {
     if (rawUrl.isEmpty) {
       return '';

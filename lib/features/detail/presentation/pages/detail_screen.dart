@@ -6,7 +6,7 @@ import '../../../../core/theme/app_palette.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/global_top_bar/global_top_bar.dart';
 import '../../../../core/widgets/space_scene_background/space_scene_background.dart';
-import '../../../../features/home/presentation/widgets/home_carousel_content.dart';
+import '../../../../features/home/presentation/widgets/widgets.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../cubit/detail_cubit.dart';
 import '../cubit/detail_status.dart';

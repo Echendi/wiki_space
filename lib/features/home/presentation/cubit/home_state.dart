@@ -1,8 +1,9 @@
 import '../../domain/entities/space_article.dart';
+import 'home_status.dart';
 
-enum HomeStatus { initial, loading, success, failure }
-
+/// Estado inmutable consumido por vistas de la feature Home.
 class HomeState {
+  /// Crea el snapshot inicial o derivado del estado Home.
   const HomeState({
     this.status = HomeStatus.initial,
     this.articles = const <SpaceArticle>[],
@@ -17,25 +18,48 @@ class HomeState {
     this.showReconnectAction = false,
   });
 
+  /// Estado de la vista: inicial, carga, exito o fallo.
   final HomeStatus status;
+
+  /// Lista completa de articulos visibles en el feed.
   final List<SpaceArticle> articles;
+
+  /// Indice activo del carrusel superior.
   final int currentIndex;
+
+  /// Mensaje tecnico o clave de error para la UI.
   final String? errorMessage;
+
+  /// Query de busqueda aplicada actualmente.
   final String query;
+
+  /// Marca de carga incremental (infinite scroll).
   final bool isLoadingMore;
+
+  /// Indica si aun se puede intentar paginar.
   final bool hasMore;
+
+  /// Indica si se opera con conectividad ausente.
   final bool isOfflineMode;
+
+  /// Indica si los datos actuales provienen de cache local.
   final bool isUsingCachedData;
+
+  /// Ultimo estado de conectividad observado.
   final bool isConnected;
+
+  /// Muestra accion de resincronizacion al reconectar.
   final bool showReconnectAction;
 
+  /// Subconjunto para carrusel superior.
   List<SpaceArticle> get carouselArticles {
-    if (articles.length <= 10) {
+    if (articles.length <= 4) {
       return articles;
     }
-    return articles.take(10).toList(growable: false);
+    return articles.take(4).toList(growable: false);
   }
 
+  /// Articulo actualmente seleccionado en el carrusel.
   SpaceArticle? get currentArticle {
     final carousel = carouselArticles;
     if (carousel.isEmpty) {
@@ -47,6 +71,7 @@ class HomeState {
     return carousel[currentIndex];
   }
 
+  /// Crea una copia inmutable del estado aplicando cambios parciales.
   HomeState copyWith({
     HomeStatus? status,
     List<SpaceArticle>? articles,

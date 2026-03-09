@@ -8,18 +8,24 @@ import '../../../../core/widgets/global_top_bar/global_top_bar.dart';
 import '../../../../core/widgets/space_scene_background/space_scene_background.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../cubit/home_cubit.dart';
+import '../cubit/home_status.dart';
 import '../cubit/home_state.dart';
 import '../widgets/widgets.dart';
 
+/// Pantalla principal de Home con feed, carrusel y estados de carga/error.
 class HomeScreen extends StatefulWidget {
+  /// Crea la pantalla Home.
   const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+/// Estado asociado a [HomeScreen] para coordinar controladores y acciones.
 class _HomeScreenState extends State<HomeScreen> {
   static const int _minSearchChars = 3;
+
+  /// Evita warnings cuando no se requiere reaccionar al evento `onChanged`.
   static void _ignoreSearchChanged(String _) {}
 
   late final PageController _pageController =
@@ -33,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  /// Ejecuta una busqueda valida en el cubit.
   void _submitSearch(HomeCubit cubit, String languageCode) {
     final query = _searchController.text.trim();
     if (!_shouldSearch(query)) {
@@ -44,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// Define si la query cumple la regla minima para buscar.
   bool _shouldSearch(String query) {
     return query.isEmpty || query.length >= _minSearchChars;
   }

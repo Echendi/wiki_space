@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_palette.dart';
-import '../../../../l10n/generated/app_localizations.dart';
-import '../cubit/home_state.dart';
+import '../../../../../l10n/generated/app_localizations.dart';
+import '../../cubit/home_state.dart';
+import '../components/home_ambient_backdrop.dart';
 import 'home_articles_sliver_grid.dart';
 import 'home_carousel_content.dart';
-import 'home_feedback_views.dart';
-import 'home_feed_header_sliver.dart';
-import 'home_header.dart';
-import 'home_load_more_sliver.dart';
-import 'home_search_bar.dart';
+import '../feedback/home_feedback_views.dart';
+import '../components/home_feed_header_sliver.dart';
+import '../components/home_header.dart';
+import '../components/home_load_more_sliver.dart';
+import '../components/home_search_bar.dart';
 
+/// Vista principal de Home cuando hay contenido disponible.
 class HomeSuccessView extends StatelessWidget {
   const HomeSuccessView({
     super.key,
@@ -64,8 +65,9 @@ class HomeSuccessView extends StatelessWidget {
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child:
-                        IgnorePointer(child: _AmbientBackdrop(isDark: isDark)),
+                    child: IgnorePointer(
+                      child: HomeAmbientBackdrop(isDark: isDark),
+                    ),
                   ),
                   Align(
                     alignment: Alignment.bottomLeft,
@@ -149,64 +151,6 @@ class HomeSuccessView extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-}
-
-class _AmbientBackdrop extends StatelessWidget {
-  const _AmbientBackdrop({required this.isDark});
-
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = isDark ? AppPalette.secondary : AppPalette.primary;
-    final accentAlt = isDark ? AppPalette.primary : AppPalette.accent;
-
-    return Stack(
-      children: [
-        Positioned(
-          top: -22,
-          left: -28,
-          child: _GlowOrb(
-            size: 140,
-            color: accent.withValues(alpha: isDark ? 0.12 : 0.1),
-          ),
-        ),
-        Positioned(
-          top: 64,
-          right: -18,
-          child: _GlowOrb(
-            size: 112,
-            color: accentAlt.withValues(alpha: isDark ? 0.1 : 0.08),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _GlowOrb extends StatelessWidget {
-  const _GlowOrb({required this.size, required this.color});
-
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            color,
-            color.withValues(alpha: 0.04),
-            Colors.transparent,
-          ],
-        ),
-      ),
     );
   }
 }

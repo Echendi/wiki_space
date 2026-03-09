@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_palette.dart';
+import '../../../../../core/theme/app_palette.dart';
 
+/// Encabezado del bloque de feed dentro del `CustomScrollView` de Home.
 class HomeFeedHeaderSliver extends StatelessWidget {
+  /// Crea un titulo de seccion en formato sliver.
   const HomeFeedHeaderSliver({
     super.key,
     required this.isDark,

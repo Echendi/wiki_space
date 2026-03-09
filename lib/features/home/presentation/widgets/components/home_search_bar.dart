@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_palette.dart';
-import '../../../../l10n/generated/app_localizations.dart';
+import '../../../../../core/theme/app_palette.dart';
+import '../../../../../l10n/generated/app_localizations.dart';
 
+/// Campo de busqueda estilizado para filtrar articulos de Home.
 class HomeSearchBar extends StatelessWidget {
+  /// Crea la barra de busqueda con callbacks de texto y accion.
   const HomeSearchBar({
     super.key,
     required this.controller,
