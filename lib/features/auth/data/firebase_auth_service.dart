@@ -47,9 +47,13 @@ class FirebaseAuthService implements AuthRepository {
   /// Este metodo encapsula el comportamiento comun de todas las variantes
   /// de login (email, Google, Facebook).
   Future<AppUser> signInWithStrategy(AuthSignInStrategy strategy) async {
-    final user = await strategy.signIn();
-    await _persistSession(user.id);
-    return user;
+    try {
+      final user = await strategy.signIn();
+      await _persistSession(user.id);
+      return user;
+    } on FirebaseAuthException catch (error) {
+      throw _mapFirebaseAuthException(error);
+    }
   }
 
   /// Inicia sesion con correo y contrasena usando estrategia especializada.
@@ -73,20 +77,24 @@ class FirebaseAuthService implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    final credential = await _firebaseAuth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-
-    final user = credential.user;
-    if (user == null) {
-      throw const AuthException(
-        code: 'user-not-found',
-        message: 'No se pudo crear un usuario valido.',
+    try {
+      final credential = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
       );
-    }
 
-    await _persistSession(user.uid);
+      final user = credential.user;
+      if (user == null) {
+        throw const AuthException(
+          code: 'user-not-found',
+          message: 'No se pudo crear un usuario valido.',
+        );
+      }
+
+      await _persistSession(user.uid);
+    } on FirebaseAuthException catch (error) {
+      throw _mapFirebaseAuthException(error);
+    }
   }
 
   /// Actualiza el nombre visible del usuario autenticado en Firebase.
@@ -197,6 +205,24 @@ class FirebaseAuthService implements AuthRepository {
       emailVerified: user.emailVerified,
       lastSignInAt: user.metadata.lastSignInTime,
       providerIds: providerIds,
+    );
+  }
+
+  /// Traduce excepciones de Firebase a [AuthException] estable para UI.
+  AuthException _mapFirebaseAuthException(FirebaseAuthException error) {
+    final normalizedCode =
+        error.code.trim().toLowerCase().replaceFirst('auth/', '');
+
+    if (normalizedCode == 'invalid-login-credentials') {
+      return AuthException(
+        code: 'invalid-credential',
+        message: error.message,
+      );
+    }
+
+    return AuthException(
+      code: normalizedCode,
+      message: error.message,
     );
   }
 }
