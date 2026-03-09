@@ -10,6 +10,7 @@
 - [Decisiones tecnicas justificadas](#decisiones-tecnicas-justificadas)
 - [Documentacion de pruebas](#documentacion-de-pruebas)
 - [Mejoras futuras](#mejoras-futuras)
+- [Autor](#autor)
 
 ## Descripcion general
 
@@ -563,3 +564,9 @@ Referencia detallada:
 - Mejorar feedback de reconexion (retry automatico configurable por pantalla).
 - Fortalecer accesibilidad (semantics, contraste y navegacion por teclado).
 - Continuar refinamiento de mensajes localizados ES/EN y documentacion funcional.
+
+## Autor
+
+- Nombre: Nicolás David Fajardo Acuña
+- LinkedIn: https://www.linkedin.com/in/david-fajardo-dbj/
+- Email: nidafa2611@gmail.com
