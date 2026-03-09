@@ -70,6 +70,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get continueWithFacebook => 'Continue with Facebook';
 
   @override
+  String get facebookNotImplemented =>
+      'Facebook sign-in is not implemented yet.';
+
+  @override
   String get emailRequired => 'Email is required.';
 
   @override

@@ -53,10 +53,10 @@ class HomeState {
 
   /// Subconjunto para carrusel superior.
   List<SpaceArticle> get carouselArticles {
-    if (articles.length <= 4) {
+    if (articles.length <= 5) {
       return articles;
     }
-    return articles.take(4).toList(growable: false);
+    return articles.take(5).toList(growable: false);
   }
 
   /// Articulo actualmente seleccionado en el carrusel.

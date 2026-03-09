@@ -22,7 +22,7 @@ class HomeCubit extends Cubit<HomeState> {
 
   final GetSpaceArticlesUseCase _getSpaceArticlesUseCase;
   final NetworkStatus _networkStatus;
-  static const int _pageSize = 4;
+  static const int _pageSize = 5;
   late final StreamSubscription<bool> _connectivitySubscription;
   bool _wasOffline = false;
 

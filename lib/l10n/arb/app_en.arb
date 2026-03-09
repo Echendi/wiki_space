@@ -20,6 +20,7 @@
   "continueWith": "or continue with",
   "continueWithGoogle": "Continue with Google",
   "continueWithFacebook": "Continue with Facebook",
+  "facebookNotImplemented": "Facebook sign-in is not implemented yet.",
   "emailRequired": "Email is required.",
   "emailInvalid": "Enter a valid email.",
   "passwordRequired": "Password is required.",

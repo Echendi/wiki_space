@@ -218,6 +218,12 @@ abstract class AppLocalizations {
   /// **'Continuar con Facebook'**
   String get continueWithFacebook;
 
+  /// No description provided for @facebookNotImplemented.
+  ///
+  /// In es, this message translates to:
+  /// **'El inicio de sesión con Facebook aún no está implementado.'**
+  String get facebookNotImplemented;
+
   /// No description provided for @emailRequired.
   ///
   /// In es, this message translates to:

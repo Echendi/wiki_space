@@ -70,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
   /// Ejecuta login social con Facebook.
   Future<void> _signInWithFacebook() async {
     FocusScope.of(context).unfocus();
-    await _authCubit.signInWithFacebook();
+    _showError(AppLocalizations.of(context).facebookNotImplemented);
   }
 
   /// Muestra un `SnackBar` de error reemplazando el actual si existe.
@@ -107,6 +107,8 @@ class _LoginScreenState extends State<LoginScreen> {
         return l10n.firebaseAccountExistsDifferentProvider;
       case 'facebook-login-failed':
         return l10n.firebaseFacebookLoginFailed;
+      case 'facebook-not-implemented':
+        return l10n.facebookNotImplemented;
       case 'operation-not-allowed':
         return l10n.firebaseOperationNotAllowed;
       case 'unknown':

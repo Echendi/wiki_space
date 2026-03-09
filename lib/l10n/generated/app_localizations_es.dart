@@ -71,6 +71,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get continueWithFacebook => 'Continuar con Facebook';
 
   @override
+  String get facebookNotImplemented =>
+      'El inicio de sesión con Facebook aún no está implementado.';
+
+  @override
   String get emailRequired => 'El email es obligatorio.';
 
   @override

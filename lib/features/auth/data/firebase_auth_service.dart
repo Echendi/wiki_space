@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -116,20 +115,14 @@ class FirebaseAuthService implements AuthRepository {
     await user.reload();
   }
 
-  /// Cierra sesion en proveedores sociales, Firebase y almacenamiento local.
+  /// Cierra sesion en proveedor Google, Firebase y almacenamiento local.
   ///
-  /// Los errores de Google/Facebook se ignoran para no bloquear el cierre
+  /// Los errores de Google se ignoran para no bloquear el cierre
   /// principal de Firebase.
   @override
   Future<void> signOut() async {
     try {
       await _googleSignIn.signOut();
-    } catch (_) {
-      // Ignora errores de cierre de sesion del proveedor para priorizar Firebase.
-    }
-
-    try {
-      await FacebookAuth.instance.logOut();
     } catch (_) {
       // Ignora errores de cierre de sesion del proveedor para priorizar Firebase.
     }
@@ -150,13 +143,14 @@ class FirebaseAuthService implements AuthRepository {
     );
   }
 
-  /// Inicia sesion con Facebook y persiste sesion mediante estrategia.
+  /// Inicia sesion con Facebook.
+  ///
+  /// Temporalmente no implementado: se retorna error de dominio estable.
   @override
   Future<void> signInWithFacebook() async {
-    await signInWithStrategy(
-      FacebookSignInStrategy(
-        firebaseAuth: _firebaseAuth,
-      ),
+    throw const AuthException(
+      code: 'facebook-not-implemented',
+      message: 'Facebook sign-in is not implemented yet.',
     );
   }
 
