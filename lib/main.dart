@@ -14,6 +14,9 @@ import 'features/auth/domain/usecases/auth_use_cases.dart';
 import 'features/auth/presentation/cubit/auth_session_cubit.dart';
 import 'firebase_options.dart';
 
+/// Punto de entrada de la aplicacion.
+///
+/// Inicializa entorno, Firebase y dependencias antes de montar la UI raiz.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -26,6 +29,10 @@ Future<void> main() async {
   runApp(const MainApp());
 }
 
+/// Inicializa Firebase cuando la plataforma esta configurada.
+///
+/// En plataformas sin configuracion, se ignora el error para no bloquear
+/// ejecuciones de desarrollo local.
 Future<void> _initializeFirebase() async {
   try {
     await Firebase.initializeApp(
@@ -36,18 +43,27 @@ Future<void> _initializeFirebase() async {
   }
 }
 
+/// Widget raiz de la aplicacion.
 class MainApp extends StatefulWidget {
+  /// Crea la aplicacion principal.
   const MainApp({super.key});
 
   @override
   State<MainApp> createState() => _MainAppState();
 }
 
+/// Estado de [MainApp] que construye providers globales y `MaterialApp`.
 class _MainAppState extends State<MainApp> {
+  /// Gestiona preferencias globales de tema e idioma.
   late final AppSettingsCubit _settingsCubit;
+
+  /// Mantiene sesion de autenticacion activa para toda la app.
   late final AuthSessionCubit _authSessionCubit;
+
+  /// Encapsula configuracion de rutas y redirecciones.
   late final AppRouter _appRouter;
 
+  /// Inicializa cubits globales y router al arrancar la app.
   @override
   void initState() {
     super.initState();
@@ -60,6 +76,7 @@ class _MainAppState extends State<MainApp> {
     _settingsCubit.loadSavedPreferences();
   }
 
+  /// Libera recursos globales al desmontar la app raiz.
   @override
   void dispose() {
     _authSessionCubit.close();
@@ -68,6 +85,7 @@ class _MainAppState extends State<MainApp> {
     super.dispose();
   }
 
+  /// Construye la app con providers globales y configuracion de tema/locale.
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
