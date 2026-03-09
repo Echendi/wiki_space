@@ -13,7 +13,7 @@ part 'selection_tile.dart';
 ///
 /// Responsabilidades:
 /// - Mostrar branding (logo + titulo).
-/// - Exponer controles globales de tema e idioma.
+/// - Exponer control global de idioma.
 /// - Mostrar estado offline en tiempo real.
 class GlobalTopBar extends StatelessWidget implements PreferredSizeWidget {
   const GlobalTopBar({
@@ -32,9 +32,7 @@ class GlobalTopBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final settingsState = context.watch<AppSettingsCubit>().state;
-    final currentThemeMode = settingsState.themeMode;
     final currentLanguageCode = settingsState.locale.languageCode;
-    final settingsCubit = context.read<AppSettingsCubit>();
     final connectivityStatusService =
         serviceLocator<ConnectivityStatusService>();
     final appBarForeground = Theme.of(context).appBarTheme.foregroundColor ??
@@ -93,14 +91,6 @@ class GlobalTopBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             );
           },
-        ),
-        IconButton(
-          tooltip: _themeTooltip(l10n, currentThemeMode),
-          onPressed: () {
-            final nextMode = _nextThemeMode(currentThemeMode);
-            settingsCubit.setThemeMode(nextMode);
-          },
-          icon: Icon(_themeIcon(currentThemeMode)),
         ),
         Tooltip(
           message: _languageTooltip(l10n, currentLanguageCode),
@@ -174,30 +164,6 @@ class GlobalTopBar extends StatelessWidget implements PreferredSizeWidget {
     }
 
     await settingsCubit.setLocale(selectedLocale);
-  }
-
-  ThemeMode _nextThemeMode(ThemeMode currentThemeMode) {
-    return switch (currentThemeMode) {
-      ThemeMode.system => ThemeMode.light,
-      ThemeMode.light => ThemeMode.dark,
-      ThemeMode.dark => ThemeMode.system,
-    };
-  }
-
-  IconData _themeIcon(ThemeMode currentThemeMode) {
-    return switch (currentThemeMode) {
-      ThemeMode.system => Icons.brightness_auto_rounded,
-      ThemeMode.light => Icons.light_mode_rounded,
-      ThemeMode.dark => Icons.dark_mode_rounded,
-    };
-  }
-
-  String _themeTooltip(AppLocalizations l10n, ThemeMode currentThemeMode) {
-    return switch (currentThemeMode) {
-      ThemeMode.system => l10n.themeSystemLabel,
-      ThemeMode.light => l10n.themeLightLabel,
-      ThemeMode.dark => l10n.themeDarkLabel,
-    };
   }
 
   String _languageFlag(String languageCode) {

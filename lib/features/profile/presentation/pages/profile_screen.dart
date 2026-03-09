@@ -8,18 +8,23 @@ import '../../../../core/widgets/space_scene_background/space_scene_background.d
 import '../../../../core/settings/cubit/app_settings_cubit.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/cubit/auth_session_cubit.dart';
+import '../widgets/widgets.dart';
 
+/// Pantalla de perfil con configuracion de tema y datos de sesion.
 class ProfileScreen extends StatefulWidget {
+  /// Crea la pantalla principal de perfil.
   const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
+/// Estado interno de [ProfileScreen].
 class _ProfileScreenState extends State<ProfileScreen> {
   late final Future<PackageInfo> _packageInfoFuture;
   late ThemeMode _selectedThemeMode;
 
+  /// Inicializa carga de metadatos de la app y tema inicial.
   @override
   void initState() {
     super.initState();
@@ -27,6 +32,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _selectedThemeMode = ThemeMode.system;
   }
 
+  /// Persiste el modo de tema seleccionado por el usuario.
   Future<void> _handleThemeModeChanged(
     BuildContext context,
     ThemeMode selectedMode,
@@ -41,6 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await context.read<AppSettingsCubit>().setThemeMode(selectedMode);
   }
 
+  /// Formatea fecha/hora de ultimo acceso segun localizacion actual.
   String? _formatLastConnection(BuildContext context, DateTime? dateTime) {
     if (dateTime == null) {
       return null;
@@ -55,6 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return '$dateText $timeText';
   }
 
+  /// Construye la UI de perfil y secciones de configuracion.
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -124,7 +132,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         segments: [
                           ButtonSegment(
                             value: ThemeMode.system,
-                            label: _ThemeSegmentLabel(
+                            label: ProfileThemeSegmentLabel(
                               icon: Icons.brightness_auto_rounded,
                               text: l10n.themeSystemLabel,
                               selected: _selectedThemeMode == ThemeMode.system,
@@ -132,7 +140,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           ButtonSegment(
                             value: ThemeMode.light,
-                            label: _ThemeSegmentLabel(
+                            label: ProfileThemeSegmentLabel(
                               icon: Icons.light_mode_rounded,
                               text: l10n.themeLightLabel,
                               selected: _selectedThemeMode == ThemeMode.light,
@@ -140,7 +148,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           ButtonSegment(
                             value: ThemeMode.dark,
-                            label: _ThemeSegmentLabel(
+                            label: ProfileThemeSegmentLabel(
                               icon: Icons.dark_mode_rounded,
                               text: l10n.themeDarkLabel,
                               selected: _selectedThemeMode == ThemeMode.dark,
@@ -182,21 +190,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                     ),
                     const SizedBox(height: 12),
-                    _InfoRow(
+                    ProfileInfoRow(
                       label: l10n.profileDisplayNameLabel,
                       value: user?.displayName,
                       fallback: l10n.profileNotAvailable,
                       labelColor: secondaryTextColor,
                       valueColor: primaryTextColor,
                     ),
-                    _InfoRow(
+                    ProfileInfoRow(
                       label: l10n.profileEmailLabel,
                       value: user?.email,
                       fallback: l10n.profileNotAvailable,
                       labelColor: secondaryTextColor,
                       valueColor: primaryTextColor,
                     ),
-                    _InfoRow(
+                    ProfileInfoRow(
                       label: l10n.profileLastConnectionLabel,
                       value: _formatLastConnection(
                         context,
@@ -206,14 +214,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       labelColor: secondaryTextColor,
                       valueColor: primaryTextColor,
                     ),
-                    _InfoRow(
+                    ProfileInfoRow(
                       label: l10n.profileUidLabel,
                       value: user?.id,
                       fallback: l10n.profileNotAvailable,
                       labelColor: secondaryTextColor,
                       valueColor: primaryTextColor,
                     ),
-                    _InfoRow(
+                    ProfileInfoRow(
                       label: l10n.profileProvidersLabel,
                       value:
                           providerIds.isEmpty ? null : providerIds.join(', '),
@@ -221,7 +229,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       labelColor: secondaryTextColor,
                       valueColor: primaryTextColor,
                     ),
-                    _InfoRow(
+                    ProfileInfoRow(
                       label: l10n.profileEmailVerifiedLabel,
                       value: user == null
                           ? null
@@ -259,7 +267,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ? l10n.profileNotAvailable
                             : '${info.version} (${info.buildNumber})';
 
-                        return _InfoRow(
+                        return ProfileInfoRow(
                           label: l10n.profileVersionLabel,
                           value: versionText,
                           fallback: l10n.profileNotAvailable,
@@ -284,6 +292,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  /// Muestra dialogo de confirmacion y ejecuta cierre de sesion.
   Future<void> _confirmAndSignOut(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
     final shouldSignOut = await showDialog<bool>(
@@ -324,89 +333,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return;
     }
 
+    if (!context.mounted) {
+      return;
+    }
+
     await context.read<AuthSessionCubit>().signOut();
     if (!context.mounted) {
       return;
     }
 
+    final successL10n = AppLocalizations.of(context);
+
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(l10n.signOutSuccess)),
+        SnackBar(content: Text(successL10n.signOutSuccess)),
       );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.label,
-    required this.value,
-    required this.fallback,
-    required this.labelColor,
-    required this.valueColor,
-  });
-
-  final String label;
-  final String? value;
-  final String fallback;
-  final Color labelColor;
-  final Color valueColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final displayValue =
-        (value == null || value!.trim().isEmpty) ? fallback : value!.trim();
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: RichText(
-        text: TextSpan(
-          children: [
-            TextSpan(
-              text: '$label: ',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: labelColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
-            TextSpan(
-              text: displayValue,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: valueColor,
-                  ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ThemeSegmentLabel extends StatelessWidget {
-  const _ThemeSegmentLabel({
-    required this.icon,
-    required this.text,
-    required this.selected,
-  });
-
-  final IconData icon;
-  final String text;
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(selected ? Icons.check_rounded : icon, size: 18),
-        const SizedBox(height: 4),
-        Text(
-          text,
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.visible,
-        ),
-      ],
-    );
   }
 }
